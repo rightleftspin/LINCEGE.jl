@@ -20,3 +20,13 @@ Features:
     Simple NLCE using unit cell
     Tiling NLCE using cell
     Tiling NLCE using unit cell and cell
+
+
+Pipeline:
+    
+    Step 1: Break Lattice
+        Input: Lattice
+        Output: Array of Lattice Broken Down
+    Step 2: Filter Array of Clusters
+        Input: Array of Clusters
+        Output: 
