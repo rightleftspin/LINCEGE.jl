@@ -120,7 +120,6 @@ function NLCELattice(
         end
     end
 
-    println(directions)
     NLCELattice(
         centers,
         colors,
