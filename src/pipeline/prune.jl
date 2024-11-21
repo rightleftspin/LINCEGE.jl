@@ -32,10 +32,10 @@ Output:
 function prune(pruning::Function, clusters::AbstractVector{<:AbstractNLCECluster})
 
     # Initialize the empty output dictionary
-    cluster_mult = Dict{Integer,Tuple{<:AbstractNLCECluster,<:Integer,<:AbstractDict}}()
+    cluster_mult = Dict{Integer,Tuple{<:AbstractNLCECluster,<:Real,<:AbstractDict}}()
 
     # Add function for multiplicity
-    add_mult_one = (cluster, mult, _) -> (cluster, mult + 1, Dict{Integer,Integer}())
+    add_mult_one = (cluster, mult, _) -> (cluster, mult + 1, Dict{Integer,Real}())
 
     for cluster in clusters
         # Find the hash and rearranged cluster for each cluster
@@ -43,7 +43,7 @@ function prune(pruning::Function, clusters::AbstractVector{<:AbstractNLCECluster
 
         # Add this information to the output dictionary
         cluster_mult[hash] =
-            add_mult_one(get(cluster_mult, hash, (cluster, 0, Dict{Integer,Integer}()))...)
+            add_mult_one(get(cluster_mult, hash, (cluster, 0, Dict{Integer,Real}()))...)
     end
 
     cluster_mult

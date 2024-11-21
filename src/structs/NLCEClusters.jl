@@ -27,6 +27,7 @@ begin #Required functions for the pipeline
     nv(cluster::NLCECluster) = length(cluster.vertices)
     vertices(cluster::NLCECluster) = cluster.vertices
     underlying_lattice(cluster::NLCECluster) = cluster.lattice
+    unit_cell_size(cluster::NLCECluster) = length(center(underlying_lattice(cluster)))
     label(cluster::NLCECluster, vertices::Union{Integer,AbstractArray}) =
         label(underlying_lattice(cluster), vertices)
     neighbors(cluster::NLCECluster, vertex::Integer) =

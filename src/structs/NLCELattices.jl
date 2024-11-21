@@ -78,23 +78,21 @@ Constructor for NLCE lattice, takes in a basis, primitive primitive vectors and
 the maximum order and generates a lattice with the padding necessary. 
 """
 function NLCELattice(
-    basis::AbstractVector{<:AbstractVector{T}},
-    primitive_vectors::AbstractVector{<:AbstractVector{T}},
-    neighborhood::AbstractVector{T},
+    basis::AbstractVector{<:AbstractVector{<:Real}},
+    primitive_vectors::AbstractVector{<:AbstractVector{<:Real}},
+    neighborhood::AbstractVector{<:Real},
     max_order::Integer;
     basis_colors::AbstractVector{<:Integer} = repeat([1], length(basis))
-) where {T<:Real}
+)
 
     max_order_padded = (2 * max_order) + 1
-    #center = 
-    #    (div(max_order_padded, 2) + 1) + ((div(max_order_padded, 2) + 1) * max_order_padded)
     coordinates, colors, centers = generate_coordinates(basis, primitive_vectors, max_order_padded, basis_colors)
 
     number_vertices = length(coordinates)
     adj_matrix = zeros(Int, number_vertices, number_vertices)
     adj_matrix_weights = zeros(Int, 2, number_vertices, number_vertices)
 
-    directions::Vector{Vector{T}} = []
+    directions::Vector{Vector{Real}} = []
 
     for (index_coord, coord) in enumerate(coordinates)
         for (index_distance, distance) in enumerate(neighborhood)

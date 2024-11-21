@@ -21,11 +21,11 @@ Output:
     hashmap containing hashes of clusters and their corresponding multiplicities
 """
 function simple_NLCE(
-    basis::AbstractVector{<:AbstractVector{T}},
-    primitive_vectors::AbstractVector{<:AbstractVector{T}},
-    neighborhood::AbstractVector{T},
+    basis::AbstractVector{<:AbstractVector{<:Real}},
+    primitive_vectors::AbstractVector{<:AbstractVector{<:Real}},
+    neighborhood::AbstractVector{<:Real},
     max_order::Integer,
-) where {T<:Real}
+)
 
     # Create the lattice
     lattice = NLCELattice(basis, primitive_vectors, neighborhood, max_order)
@@ -34,17 +34,25 @@ function simple_NLCE(
     # find all the isomorphic clusters
     iso_clusters =
         prune(isomorphic_pruning, filtering(symmetric_pruning, generated_clusters))
+
+    # Account for the size of the unit cell in the pruning
+    for (hash, (cluster, mult, subcluster_mult)) in iso_clusters
+        if nv(cluster) > 1
+            iso_clusters[hash] = (cluster, mult // length(basis), subcluster_mult)
+        end
+    end
+
     # Find all their subclusters
     subclusters = propogate(isomorphic_pruning, iso_clusters)
 
     # Initialize an empty output dictionary
-    output_dict = Dict{AbstractNLCECluster,Vector{<:Integer}}()
+    output_dict = Dict{AbstractNLCECluster,Vector{<:Real}}()
 
     # Return the final sum for all clusters
     for order = 1:max_order
         for (hash, mult) in nlce_summation(subclusters, order)
             output_dict[iso_clusters[hash][1]] =
-                append!(get(output_dict, iso_clusters[hash][1], Vector{Int}()), mult)
+                append!(get(output_dict, iso_clusters[hash][1], Vector{Real}()), mult)
         end
     end
 
@@ -52,7 +60,7 @@ function simple_NLCE(
 end
 
 
-function write_to_file(nlce_output::AbstractDict{AbstractNLCECluster, Vector{<:Integer}}, filename::AbstractString)
+function write_to_file(nlce_output::AbstractDict{AbstractNLCECluster, Vector{<:Real}}, filename::AbstractString)
 
     nlce_file = open(filename, "w")
 
@@ -66,7 +74,7 @@ function write_to_file(nlce_output::AbstractDict{AbstractNLCECluster, Vector{<:I
     close(nlce_file)
 end
 
-function write_to_file_fortran(nlce_output::AbstractDict{AbstractNLCECluster, Vector{<:Integer}}, filename::AbstractString, max_order::Integer)
+function write_to_file_fortran(nlce_output::AbstractDict{AbstractNLCECluster, Vector{<:Real}}, filename::AbstractString, max_order::Integer)
 
     nlce_files = [open(filename * "_$(i).txt", "w") for i in 1:max_order]
     sorted_clusters = sort(collect(keys(nlce_output)), by=nv)

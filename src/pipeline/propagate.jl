@@ -35,7 +35,7 @@ Output:
 """
 function propogate(
     pruning_fxn::Function,
-    clusters::AbstractDict{Integer,Tuple{<:AbstractNLCECluster,<:Integer,<:AbstractDict}},
+    clusters::AbstractDict{Integer,Tuple{<:AbstractNLCECluster,<:Real,<:AbstractDict}},
 )
 
     for (hash, (cluster, mult)) in clusters
@@ -71,7 +71,7 @@ Output:
 function prune_cluster(pruning::Function, clusters::AbstractVector{<:AbstractNLCECluster})
 
     # Initialize the empty output dictionary
-    cluster_mult = Dict{Integer,Integer}()
+    cluster_mult = Dict{Integer,Real}()
 
     for cluster in clusters
         hash, _ = pruning(cluster)

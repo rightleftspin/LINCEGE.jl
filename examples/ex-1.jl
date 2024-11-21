@@ -16,7 +16,7 @@ primitive_vec = [[1, 0], [0, 1]]
 neighborhood = [1]
 
 # Setting the maximum order
-max_order = 4
+max_order = 5
 
 # Generating all the clusters using this information
 nlce_clusters = simple_NLCE(basis, primitive_vec, neighborhood, max_order)
