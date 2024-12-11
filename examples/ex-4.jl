@@ -1,22 +1,19 @@
 """
-Example generating the data for a kagome lattice and 
+Example generating the data for a pyrocholre lattice and 
 writing to a file meant to be read by fortran code
 """
-module ex1
+module ex4
 
 using NLCE
 
-# Set the basis, since there is only one atom, it is at [0, 0]
 basis = [[0, 0, 0], [0, 1 / 4, 1 / 4], [1 / 4, 0, 1 / 4], [1 / 4, 1 / 4, 0]]
 
-# Choose the primitive vectors, there are two on a square lattice
 primitive_vec = [[0, 1 / 2, 1 / 2], [ 1/ 2, 0, 1/2], [1 / 2, 1 / 2, 0]]
 
-# Choosing nearest neighbors (within distance 1 from each other)
-neighborhood = [1 / 2]
+neighborhood = [sqrt(2) / 4]
 
 # Setting the maximum order
-max_order = 4
+max_order = 10
 
 # Generating all the clusters using this information
 nlce_clusters = simple_NLCE(basis, primitive_vec, neighborhood, max_order)
@@ -27,7 +24,7 @@ filepath = "examples/outputs/ex-4/pyrochlore_nn"
 mkpath(filepath)
 filename = filepath * "/pyrochlore_nn"
 
-# Write all the files in the "fortran" format
-write_to_file_fortran(nlce_clusters, filename, max_order)
+# Write all the files in the default format
+write_to_file(nlce_clusters, filename)
 
 end

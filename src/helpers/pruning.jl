@@ -14,6 +14,9 @@ the function returns nothing, this means that no permutation is necessary.
 Takes a cluster and finds the translationally invariant
 form of it.
 
+TODO: Rename to translational pruning, it makes more sense since
+it is based on translational symmetry
+
 Inputs: 
       cluster: takes a cluster struct, uses the direction
       weights matrix in the cluster
@@ -66,3 +69,19 @@ function isomorphic_pruning(cluster::AbstractNLCECluster)
     return (ghash(nauty_graph), permutation[1:nv(cluster)])
 
 end
+
+
+function symmetric_pruning_pyrochlore(cluster::AbstractNLCECluster)
+
+end
+
+function symmetric_pruning_square(cluster::AbstractNLCECluster)
+
+end
+
+function symmetric_pruning_triangular(cluster::AbstractNLCECluster)
+
+end
+
+
+
