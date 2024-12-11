@@ -14,9 +14,6 @@ the function returns nothing, this means that no permutation is necessary.
 Takes a cluster and finds the translationally invariant
 form of it.
 
-TODO: Rename to translational pruning, it makes more sense since
-it is based on translational symmetry
-
 Inputs: 
       cluster: takes a cluster struct, uses the direction
       weights matrix in the cluster
@@ -24,7 +21,7 @@ Inputs:
 Output:
       Tuple of cluster hash and nothing
 """
-function symmetric_pruning(cluster::AbstractNLCECluster)
+function translational_pruning(cluster::AbstractNLCECluster)
 
     (
         hash(

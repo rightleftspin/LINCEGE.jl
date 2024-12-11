@@ -33,7 +33,7 @@ function simple_NLCE(
     generated_clusters = grow(lattice, max_order)
     # find all the isomorphic clusters
     iso_clusters =
-        prune(isomorphic_pruning, filtering(symmetric_pruning, generated_clusters))
+        prune(isomorphic_pruning, filtering(translational_pruning, generated_clusters))
 
     # Account for the size of the unit cell in the pruning
     for (hash, (cluster, mult, subcluster_mult)) in iso_clusters
