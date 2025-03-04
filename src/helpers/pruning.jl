@@ -22,13 +22,15 @@ Output:
       Vector of cluster translational form
 """
 function translational_form(cluster::AbstractNLCECluster)
-    vec(
+    cluster_perm = sortperm(vertices(cluster))
+    (vec(
         sum(
             weight -> 2^weight,
-            direction_matrix(cluster)[sortperm(vertices(cluster)), :],
+            direction_matrix(cluster)[cluster_perm, :],
             dims = 2,
         ),
-    )
+    ),
+     cluster_perm)
 end
 
 """
@@ -43,8 +45,8 @@ Output:
       Tuple of cluster hash and nothing
 """
 function translational_pruning(cluster::AbstractNLCECluster)
-
-    (hash(translational_form(cluster)), nothing)
+    form, perm = translational_form(cluster)
+    (hash(form + (1 .// (labels(cluster)[perm] .+ 1))), nothing)
 
 end
 
@@ -69,7 +71,8 @@ function isomorphic_pruning(cluster::AbstractNLCECluster)
     # Canonize and find the corresponding permutation 
     permutation, _ = canonize!(nauty_graph)
     
-    add_orbits!(cluster, NautyGraphs.orbits(nauty_graph)) 
+    #add_orbits!(cluster, NautyGraphs.orbits(nauty_graph)) 
+    add_orbits!(cluster, vertices(cluster)) 
 
     # Return the nauty hash and the permutation for the cluster
     # the slice is because the permutation will potentially

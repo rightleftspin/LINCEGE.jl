@@ -225,6 +225,24 @@ function write_to_file(
     close(nlce_file)
 end
 
+function write_to_file_colors(
+    nlce_output::AbstractDict{AbstractNLCECluster,Vector{<:Real}},
+    filename::AbstractString,
+)
+
+    nlce_file = open(filename, "w")
+
+    for (cluster, mults) in nlce_output
+        write(nlce_file, "$(nv(cluster)):")
+        for edge in edge_list(cluster)
+            write(nlce_file, " $(join(edge, ' '))")
+        end
+        write(nlce_file, " : $(join(labels(cluster), ' '))")
+        write(nlce_file, " : $(join(mults, ' '))\n")
+    end
+    close(nlce_file)
+end
+
 function write_to_file_fortran(
     nlce_output::AbstractDict{AbstractNLCECluster,Vector{<:Real}},
     filename::AbstractString,

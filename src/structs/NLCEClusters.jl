@@ -31,6 +31,7 @@ begin #Required functions for the pipeline
     unit_cell_size(cluster::NLCECluster) = length(center(underlying_lattice(cluster)))
     label(cluster::NLCECluster, vertices::Union{Integer,AbstractArray}) =
         label(underlying_lattice(cluster), vertices)
+    labels(cluster::NLCECluster) = label(cluster, vertices(cluster))
     neighbors(cluster::NLCECluster, vertex::Integer) =
         filter(in(vertices(cluster)), neighbors(underlying_lattice(cluster), vertex))
     adjacency_matrix(cluster::NLCECluster) = cluster.adj_matrix

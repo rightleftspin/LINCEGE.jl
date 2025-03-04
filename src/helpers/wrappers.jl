@@ -122,3 +122,84 @@ function coord_NLCE(
     output_dict, cluster_hashes, cluster_perms
 end
 
+
+"""
+Performs NLCE with site colors
+
+Inputs:
+      basis: basis for the unit cell, this wrapper
+      assumes all atoms in the basis are the same
+
+      colors: color for each element in the basis
+
+      primitive_vectors: primitive vectors to tile the lattice
+
+      neighborhood: array of distances to consider as neighbors. ie. The
+      first nearest neighbor will be all neighbors with distance equal
+      (up to machine precision) to the first entry of this array
+
+      max_order: highest NLCE order to go to
+
+Output:
+    hashmap containing hashes of clusters and their corresponding multiplicities
+"""
+function site_color_NLCE(
+    basis::AbstractVector{<:AbstractVector{<:Real}},
+    colors::AbstractVector{<:Integer},
+    primitive_vectors::AbstractVector{<:AbstractVector{<:Real}},
+    neighborhood::AbstractVector{<:Real},
+    max_order::Integer,
+)
+
+    # Create the lattice
+    lattice = NLCELattice(basis, primitive_vectors, neighborhood, max_order, basis_colors = colors)
+    println("Lattice Generated")
+    # Generate clusters on the lattice
+    generated_clusters = grow(lattice, max_order)
+    println("clusters Generated")
+    # find all the isomorphic clusters
+    #for cluster in filtering(translational_pruning, generated_clusters)
+    #    if nv(cluster) == 2
+    #    println(nv(cluster))
+    #    println(all_coordinates(cluster))
+    #    println(translational_form(cluster))
+    #    #println(translational_form(cluster) + (1 .// (labels(cluster) .+ 1)))
+    #    println(labels(cluster))
+    #        end
+    #end
+
+    iso_clusters =
+        prune(isomorphic_pruning, filtering(translational_pruning, generated_clusters))
+
+    # Account for the size of the unit cell in the pruning
+    #for (hash, (cluster, mult, subcluster_mult)) in iso_clusters
+    #    if nv(cluster) > 1
+    #        iso_clusters[hash] = (cluster, mult // length(basis), subcluster_mult)
+    #    end
+    #end
+
+    println("pruned")
+
+    # Find all their subclusters
+    subclusters = propogate(isomorphic_pruning, iso_clusters)
+    println("subclusters")
+
+   # for (hash, cluster) in subclusters
+   #     println(hash)
+   #     println(nv(cluster[1]))
+   #     println(cluster[3])
+   # end
+
+    # Initialize an empty output dictionary
+    output_dict = Dict{AbstractNLCECluster,Vector{<:Real}}()
+
+    # Return the final sum for all clusters
+    for order = 1:max_order
+        for (hash, mult) in nlce_summation(subclusters, order)
+            output_dict[iso_clusters[hash][1]] =
+                append!(get(output_dict, iso_clusters[hash][1], Vector{Real}()), mult)
+        end
+    end
+
+    output_dict
+end
