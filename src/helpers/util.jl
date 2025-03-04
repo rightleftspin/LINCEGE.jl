@@ -237,8 +237,11 @@ function write_to_file_colors(
         for edge in edge_list(cluster)
             write(nlce_file, " $(join(edge, ' '))")
         end
-        write(nlce_file, " : $(join(labels(cluster), ' '))")
-        write(nlce_file, " : $(join(mults, ' '))\n")
+        write(nlce_file, ": $(join(labels(cluster), ' ')):")
+        for coord in all_coordinates(cluster)
+            write(nlce_file, " ($(join(coord, ',')))")
+        end
+        write(nlce_file, ": $(join(mults, ' '))\n")
     end
     close(nlce_file)
 end
