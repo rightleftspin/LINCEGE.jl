@@ -10,7 +10,7 @@ primitive_vec = [[2, 0], [0, 2]]
 
 neighborhood = [1]
 
-max_order = 3
+max_order = 10
 
 nlce_clusters = NLCE.site_color_NLCE(basis, colors, primitive_vec, neighborhood, max_order)
 
@@ -18,10 +18,10 @@ filepath = "examples/outputs/ex-8/ssl_dimer"
 mkpath(filepath)
 filename = filepath * "/ssl_dimer_$(max_order)"
 
-NLCE.write_to_file_colors(nlce_clusters, filename)
 
 
 # Rewriting clusters to be useful
+bond_info = Dict{NLCE.AbstractNLCECluster, Vector}()
 for (cluster, multiplicities) in nlce_clusters
     intra_dimer = []
     for site in 0:(NLCE.nv(cluster) - 1)
@@ -31,29 +31,55 @@ for (cluster, multiplicities) in nlce_clusters
     inter_dimer = []
     #
     for bond in NLCE.edge_list(cluster)
-        sorted_bond = sort(bond[[1, 2]]) .- 1
-        site_1 = NLCE.all_coordinates(cluster)[sorted_bond[1] + 1]
-        site_2 = NLCE.all_coordinates(cluster)[sorted_bond[2] + 1]
+        site_1 = NLCE.all_coordinates(cluster)[bond[1]]
+        site_2 = NLCE.all_coordinates(cluster)[bond[2]]
+        site_1 = site_1[1] .* primitive_vec[1] +
+            site_1[2] .* primitive_vec[2] + basis[site_1[3]]
+        site_2 = site_2[1] .* primitive_vec[1] +
+            site_2[2] .* primitive_vec[2] + basis[site_2[3]]
 
-        sorted_sites = sort([site_1[[1, 2]], site_2[[1, 2]]])
-        site_diff = sorted_sites[1] - sorted_sites[2]
-        println(site_diff)
+        site_perm = sortperm([site_1, site_2])
+        site_labels = NLCE.labels(cluster)[[bond[1], bond[2]]][site_perm]
+        new_bond = bond[[1, 2]][site_perm] .- 1
+        sites = [site_1, site_2][site_perm]
+        site_diff = sites[2] - sites[1]
 
-        if [site_1[3], site_2[3]] == [1, 3]
-            append!(inter_dimer, [(2 * sorted_bond[2], 2 * sorted_bond[1]), (2 * sorted_bond[2], 2 * sorted_bond[1] + 1)])
+        if site_diff == [1, 0]
+        # To the right
+            if site_labels[1] == 1
+            # Horizontal dimer
+                append!(inter_dimer,
+                        [(2 * new_bond[1] + 1, 2 * new_bond[2]),
+                        (2 * new_bond[1] + 1, 2 * new_bond[2] + 1)])
+            else
+            # Vertical dimer
+                append!(inter_dimer,
+                        [(2 * new_bond[2], 2 * new_bond[1]),
+                        (2 * new_bond[2], 2 * new_bond[1] + 1)])
+            end
         else
-            append!(inter_dimer, [(2 * sorted_bond[1], 2 * sorted_bond[2]), (2 * sorted_bond[1], 2 * sorted_bond[2] + 1)])
+        # Upwards
+        if site_diff != [0, 1]
+            println("error")
+        end
+            if site_labels[1] == 1
+            # Horizontal dimer
+                append!(inter_dimer,
+                        [(2 * new_bond[2], 2 * new_bond[1]),
+                        (2 * new_bond[2], 2 * new_bond[1] + 1)])
+            else
+            # Vertical dimer
+                append!(inter_dimer,
+                        [(2 * new_bond[1] + 1, 2 * new_bond[2]),
+                        (2 * new_bond[1] + 1, 2 * new_bond[2] + 1)])
+            end
+
         end
     end
-
-    println(NLCE.nv(cluster))
-    println(NLCE.edge_list(cluster))
-    println(NLCE.labels(cluster))
-    println(NLCE.all_coordinates(cluster))
-    println(intra_dimer)
-    println(inter_dimer)
-    println("----------------------------")
+    bond_info[cluster] = [intra_dimer, inter_dimer]
 
 end
+
+NLCE.write_to_file_colors(nlce_clusters, filename, bond_info)
 
 end
