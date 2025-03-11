@@ -249,6 +249,7 @@ function write_to_file_colors(
         #for coord in all_coordinates(cluster)
         #    write(nlce_file, " ($(join(coord, ',')))")
         #end
+        #write(nlce_file, ": $(join(orbits(cluster), ' '))")
         write(nlce_file, ": $(join(mults, ' '))\n")
     end
     close(nlce_file)

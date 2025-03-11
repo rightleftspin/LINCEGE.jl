@@ -65,9 +65,41 @@ Output:
 function isomorphic_pruning(cluster::AbstractNLCECluster)
 
     # Create an empty DenseNautyGraph
-    nauty_graph =
-        NautyGraph(edge_weighted_matrix(cluster), label(cluster, vertices(cluster)))
 
+    # This is all to get weighted edges to work
+    nauty_labels = vcat(label(cluster, vertices(cluster)),
+                        zeros(Int64, fld(count(>(1), edge_weighted_matrix(cluster)), 2)))
+
+    unweighted_adjacency_matrix = zeros(Int64, length(nauty_labels), length(nauty_labels))
+
+    current_aux_vert = nv(cluster) + 1
+    for j = 1:size(edge_weighted_matrix(cluster),2)
+        for i = j:size(edge_weighted_matrix(cluster),1)
+
+            if (edge_weighted_matrix(cluster)[i, j] == 1)
+            # Add an edge if there is already an edge
+                unweighted_adjacency_matrix[i, j] = 1
+                unweighted_adjacency_matrix[j, i] = 1
+            elseif (edge_weighted_matrix(cluster)[i, j] !=0)
+            # Add an edge to the auxilary vertex here
+                unweighted_adjacency_matrix[i, current_aux_vert] = 1
+                unweighted_adjacency_matrix[j, current_aux_vert] = 1
+                unweighted_adjacency_matrix[current_aux_vert, i] = 1
+                unweighted_adjacency_matrix[current_aux_vert, j] = 1
+            # Color the aux vertex the same as the edge
+                nauty_labels[current_aux_vert] = edge_weighted_matrix(cluster)[i, j]
+                current_aux_vert += 1
+            end
+        end
+    end
+
+    #nauty_graph =
+    #   NautyGraph(edge_weighted_matrix(cluster), label(cluster, vertices(cluster)))
+
+   # println(unweighted_adjacency_matrix)
+   # println(nauty_labels)
+    nauty_graph =
+       NautyGraph(unweighted_adjacency_matrix, nauty_labels)
     # Canonize and find the corresponding permutation 
     permutation, _ = canonize!(nauty_graph)
     
