@@ -150,6 +150,19 @@ function adj_matrix_to_edge_list(adj_matrix::AbstractMatrix{<:Integer})
 
 end
 
+function reindex_adj_list(vertices::AbstractVector{<:Integer}, underlying_adj_list::AbstractVector{<:AbstractVector{<:Integer}})
+    sort_verts = sortperm(vertices)
+    sort_dict = Dict(zip(vertices[sort_verts], 1:length(vertices)))
+
+    new_adj_list::Vector{Vector{Int64}} = []
+    for vertex in vertices
+        neighbors = filter(in(vertices), underlying_adj_list[vertex])
+        push!(new_adj_list, getindex.(Ref(sort_dict), neighbors))
+    end
+
+    new_adj_list
+end
+
 # TODO: Fix this omg it is so slow
 """
 Finds a permutation representation of a given group of transformations
