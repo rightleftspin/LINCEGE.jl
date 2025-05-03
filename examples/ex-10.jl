@@ -5,13 +5,12 @@ module ex10
 
 using NLCE
 
-sup_basis = [[0, 0, 0]]
-sub_basis = [[[0, 0, 0], [0, 1 / 4, 1 / 4], [1 / 4, 0, 1 / 4], [1 / 4, 1 / 4, 0]]]
-
-sup_primitive_vec = [[0, 1 / 2, 1 / 2], [1 / 2, 0, 1 / 2], [1 / 2, 1 / 2, 0]]
-sup_neighborhood = [sqrt(2) / 2]
-sub_neighborhood = [sqrt(2) / 4]
-
+#sup_basis = [[0, 0, 0]]
+#sub_basis = [[[0, 0, 0], [0, 1 / 4, 1 / 4], [1 / 4, 0, 1 / 4], [1 / 4, 1 / 4, 0]]]
+#
+#sup_primitive_vec = [[0, 1 / 2, 1 / 2], [1 / 2, 0, 1 / 2], [1 / 2, 1 / 2, 0]]
+#sup_neighborhood = [sqrt(2) / 2]
+#sub_neighborhood = [sqrt(2) / 4]
 
 #sup_basis::Vector{Vector{Float64}} = [[0, 0]]
 #sub_basis::Vector{Vector{Vector{Float64}}} = [[[0, 0], [1, 0], [0, 1], [1, 1]]]
@@ -19,16 +18,47 @@ sub_neighborhood = [sqrt(2) / 4]
 #
 #sup_neighborhood::Vector{Float64} = [2]
 #sub_neighborhood::Vector{Float64} = [1]
+#
+#
+
 
 max_order = 4
+ssl_expansion_basis = [[0, 0], [2, 0]]
+ssl_expansion_primitive_vectors = [[4, 0], [-2, 2]]
+ssl_expansion_neighbors = [2]
 
-lattice = NLCE.Cluster(sup_basis, sub_basis, sup_primitive_vec, sup_neighborhood, sub_neighborhood, max_order)
+ssl_struct_per_basis = [[[-0.5, 0], [0.5, 0]], [[0, 0.5], [0, -0.5]]]
+ssl_colors = [[1, 2], [1, 2]]
+ssl_neighbors = [1, sqrt(10) / 2]
+
+println("start")
+
+lattice = NLCE.Cluster(ssl_expansion_basis,
+                       ssl_struct_per_basis,
+                       ssl_expansion_primitive_vectors,
+                       ssl_expansion_neighbors,
+                       ssl_neighbors,
+                       max_order)
+println("lattice")
 
 generated_clusters = NLCE.grow(lattice, max_order)
+println("clusters")
 
 iso_clusters = NLCE.prune(NLCE.isomorphic_pruning, Set(generated_clusters))
+println("iso")
 
-println(iso_clusters)
+#for (hash, cluster) in iso_clusters
+#    println(cluster[1])
+#    println(cluster[2])
+#end
+#
+
+propogated = NLCE.propogate(NLCE.isomorphic_pruning, iso_clusters)
+println("propogated")
+
+sums = NLCE.nlce_summation(propgated, max_order)
+println(typeof(sums))
+
 
 # TODO: Deal with single site multiplicity in here this could be put anywhere tbh
 
