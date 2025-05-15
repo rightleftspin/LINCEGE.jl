@@ -4,9 +4,9 @@ of writing to disk, but the standard will be JSON files
 """
 
 function write_to_file_coordinates(
-    nlce_output::AbstractDict{AbstractCluster,Vector{<:Real}},
-    cluster_hashes::AbstractDict{AbstractCluster, Integer},
-    cluster_perms::AbstractDict{AbstractCluster, Vector{<:Integer}},
+    nlce_output::AbstractDict{Cluster,Vector{<:Real}},
+    cluster_hashes::AbstractDict{Cluster, Integer},
+    cluster_perms::AbstractDict{Cluster, Vector{<:Integer}},
     filename::AbstractString,
 )
 
@@ -30,7 +30,7 @@ function write_to_file_coordinates(
 end
 
 function write_to_file(
-    nlce_output::AbstractDict{<:AbstractCluster,Vector{<:Real}},
+    nlce_output::AbstractDict{<:Cluster,Vector{<:Real}},
     filename::AbstractString,
 )
 
@@ -47,7 +47,7 @@ function write_to_file(
 end
 
 function write_to_file_colors(
-    nlce_output::AbstractDict{AbstractCluster,Vector{<:Real}},
+    nlce_output::AbstractDict{Cluster,Vector{<:Real}},
     filename::AbstractString,
     bond_info
 )
@@ -77,7 +77,7 @@ function write_to_file_colors(
 end
 
 function write_to_file_fortran(
-    nlce_output::AbstractDict{<:AbstractCluster,Vector{<:Real}},
+    nlce_output::AbstractDict{<:Cluster,Vector{<:Real}},
     filename::AbstractString,
     max_order::Integer,
 )
