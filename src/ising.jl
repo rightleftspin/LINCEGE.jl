@@ -47,55 +47,17 @@ function ising_observables(sites_per_cluster, bond_lists, multiplicities, temper
       properties
 end
 
-using Plots
-using NLCE
+using JLD
 
-square_lattice = Dict("Basis" => [[0, 0]], "Primitive Vectors" => [[1, 0], [0, 1]])
+order = 8
+num_sites, bond_lists, multiplicities = load("./outputs/Square_Lattice_$(order).jld", "num_sites"),
+load("./outputs/Square_Lattice_$(order).jld", "bond_lists"),
+load("./outputs/Square_Lattice_$(order).jld", "multiplicities")
 
-neighbors = [1]
-max_order = 8
-
-square_nlce_bundle = NLCE.SiteExpansionBundle(
-    square_lattice["Basis"],
-    square_lattice["Primitive Vectors"],
-    neighbors,
-    max_order,
-    NLCE.isomorphic_pruning,
-)
-
-square_lattice_cluster_info = NLCE.lattice_constants!(
-    square_nlce_bundle,
-    length(NLCE.start(square_nlce_bundle)),
-)
-
-NLCE.subclusters!(square_nlce_bundle, false)
-
-final_weights = NLCE.final_clusters(square_nlce_bundle)
-
-num_sites = []
-bond_lists = []
-multiplicities = []
-for (cluster, mults) in final_weights
-    push!(num_sites, NLCE.nv(cluster))
-    push!(bond_lists, NLCE.weighted_edge_list(cluster))
-    push!(multiplicities, mults)
-end
-
-
-B = 4
-couplings = [0.5, 5e-2]
+B = 0
+couplings = [1, 5e-2]
 temperature = range(0, 10, length=100)
 
 obs = ising_observables(num_sites, bond_lists, multiplicities, temperature, B, couplings)
 
-plot(temperature, obs[1, :, end-3:end])
-savefig("avg_energy_ising.pdf")
-
-plot(temperature, obs[2, :, end-3:end])
-savefig("entropy_ising.pdf")
-
-plot(temperature, obs[3, :, end-3:end])
-savefig("cv_ising.pdf")
-
-plot(temperature, obs[4, :, end-3:end], ylimits=(0,1), xlimits=(0,5))
-savefig("magnetization_ising.pdf")
+save("./outputs/square_lattice_obs_$(order).jld", "temp", temperature, "obs", obs)
