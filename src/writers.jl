@@ -5,8 +5,8 @@ of writing to disk, but the standard will be JSON files
 
 function write_to_file_coordinates(
     nlce_output::AbstractDict{Cluster,Vector{<:Real}},
-    cluster_hashes::AbstractDict{Cluster, Integer},
-    cluster_perms::AbstractDict{Cluster, Vector{<:Integer}},
+    cluster_hashes::AbstractDict{Cluster,Integer},
+    cluster_perms::AbstractDict{Cluster,Vector{<:Integer}},
     filename::AbstractString,
 )
 
@@ -17,7 +17,10 @@ function write_to_file_coordinates(
         write(nlce_file, "$(nv(cluster)):")
         write(nlce_file, " $(cluster_hashes[cluster]):")
         for edge in edge_list(cluster)
-            write(nlce_file, " $(join((findall(x -> x == edge[1], perm)[1], findall(x -> x == edge[2], perm)[1], edge[3]), ' '))")
+            write(
+                nlce_file,
+                " $(join((findall(x -> x == edge[1], perm)[1], findall(x -> x == edge[2], perm)[1], edge[3]), ' '))",
+            )
         end
         write(nlce_file, ":")
         for coord in all_coordinates(cluster)[perm]
@@ -49,7 +52,7 @@ end
 function write_to_file_colors(
     nlce_output::AbstractDict{Cluster,Vector{<:Real}},
     filename::AbstractString,
-    bond_info
+    bond_info,
 )
 
     nlce_file = open(filename, "w")

@@ -3,16 +3,19 @@ General utility functions for a variety of parts of the NLCE process, these
 will generally be math heavy functions that are used often
 """
 
-using LinearAlgebra
-using Rotations
-using Distances
-
 """
 Generates the lattice by populating the basis around each site in the primitive lattice,
 this adds it in terms of real space coordinates
 """
 function add_basis_coords(basis, lattice)
-    transpose(reduce(hcat, Iterators.flatten([[site + elem for elem in basis] for site in eachcol(lattice)])))
+    transpose(
+        reduce(
+            hcat,
+            Iterators.flatten([
+                [site + elem for elem in basis] for site in eachcol(lattice)
+            ]),
+        ),
+    )
 end
 
 """
@@ -20,7 +23,15 @@ Generates the lattice by populating the basis around each site in the primitive 
 this adds it in terms of sublattice coordinates
 """
 function add_basis_sublattice(basis, unrotated_lattice)
-     transpose(reduce(hcat, Iterators.flatten([[[site..., i] for i in 1:length(basis)] for site in eachcol(unrotated_lattice)])))
+    transpose(
+        reduce(
+            hcat,
+            Iterators.flatten([
+                [[site..., i] for i = 1:length(basis)] for
+                site in eachcol(unrotated_lattice)
+            ]),
+        ),
+    )
 end
 
 """
@@ -44,10 +55,11 @@ function generate_cartesian_coordinates(dimension, half_side_length)
     diameter = 2 * half_side_length + 1
     # Total number of coordinates for the entire lattice
     max_coords = diameter ^ dimension
-    coords = repeat(transpose(0:max_coords - 1), dimension)
+    coords = repeat(transpose(0:(max_coords-1)), dimension)
 
-    for dim = 0:(dimension - 1)
-        coords[dim + 1, :] = div.(coords[dim + 1, :], diameter ^ dim) .% diameter .- half_side_length
+    for dim = 0:(dimension-1)
+        coords[dim+1, :] =
+            div.(coords[dim+1, :], diameter ^ dim) .% diameter .- half_side_length
     end
 
     coords
@@ -63,18 +75,12 @@ super vertex and the diagonal is the reverse connection from each vertex to its 
 This is in the strong embedding, meaning each vertex belongs to a specific super cluster, meaning
 reverse connections is simply an array
 """
-function adj_matrices_strong(
-    coords,
-    neighbors,
-    labels,
-    translation_labels,
-    rev_connections
-    )
+function adj_matrices_strong(coords, neighbors, labels, translation_labels, rev_connections)
 
     num_coords = size(coords, 1)
     adj_mats = zeros(Int, 3, num_coords, num_coords)
     # Generates pairwise distances between all coordinates
-    dist_matrix = pairwise(euclidean, coords, dims=1)
+    dist_matrix = pairwise(euclidean, coords, dims = 1)
     directions = []
 
     for (i, coordi) in enumerate(eachrow(coords))
@@ -103,15 +109,64 @@ function adj_matrices_strong(
     adj_mats
 end
 
+"""
+Generates adjacency matrices from coordinates and neighbor distances.
+First adjacency matrix is a regular weighted adjacency matrix with vertex labels along the diagonal
+Second adjacency matrix is the direction matrix with translation labels along the diagonal
+Third adjacency matrix is the connection adjacency matrix where each bond is labeled by its corresponding
+super vertex and the diagonal is the reverse connection from each vertex to its super vertex
+
+This is in the weak embedding, meaning each bond belongs to a specific super cluster, meaning
+reverse connections is no longer simply an array
+"""
+function adj_matrices_weak(coords, neighbors, labels, translation_labels, rev_connections)
+
+    num_coords = size(coords, 1)
+    adj_mats = zeros(Int, 3, num_coords, num_coords)
+    # Generates pairwise distances between all coordinates
+    dist_matrix = pairwise(euclidean, coords, dims = 1)
+    directions = []
+
+    for (i, coordi) in enumerate(eachrow(coords))
+        adj_mats[1, i, i] = labels[i]
+        adj_mats[2, i, i] = translation_labels[i]
+
+        for (j, coordj) in enumerate(eachrow(coords))
+            for (index_distance, distance) in enumerate(neighbors)
+                if isapprox(dist_matrix[i, j], distance)
+                    adj_mats[1, i, j] = index_distance
+                    direction = coordi - coordj
+                    if findfirst(≈(direction), directions) != nothing
+                        adj_mats[2, i, j] = findfirst(≈(direction), directions)
+                    else
+                        push!(directions, direction)
+                        adj_mats[2, i, j] = findfirst(≈(direction), directions)
+                    end
+
+                    # Sometimes, there are dangling bonds in the lattice, however, these are usually
+                    # far out enough to where you will never expand into then, so they can safely
+                    # be set to 0 and not be dealt with
+                    bond_sv = findall(in(rev_connections[j]), rev_connections[i])
+                    if !isempty(bond_sv)
+                        adj_mats[3, i, j] = rev_connections[i][bond_sv[1]]
+                    end
+                end
+            end
+        end
+    end
+
+    adj_mats
+end
+
 function adj_list_from_coords(coords, neighbor_distances)
     num_coords = size(coords, 1)
     adj_list::Vector{Vector{Int}} = []
     # Generates pairwise distances between all coordinates
-    dists = pairwise(euclidean, coords, dims=1)
+    dists = pairwise(euclidean, coords, dims = 1)
 
-    for i in 1:num_coords
+    for i = 1:num_coords
         temp_adj_list::Vector{Int} = []
-        for j in 1:num_coords
+        for j = 1:num_coords
             for d in neighbor_distances
                 if (dists[i, j] ≈ d)
                     append!(temp_adj_list, j)
@@ -124,25 +179,36 @@ function adj_list_from_coords(coords, neighbor_distances)
     adj_list
 end
 
-function hashing_lattice_coords(real_space_coords, expansion_sublattice_coords, struct_per_basis, colors)
+function hashing_lattice_coords(
+    real_space_coords,
+    expansion_sublattice_coords,
+    struct_per_basis,
+    labels,
+    translation_labels,
+)
     sub_coords = []
     connection::Vector{Vector{Int}} = []
     rev_connection::Vector{Vector{Int}} = []
-    all_colors = []
+    all_labels = []
+    all_translation_labels = []
 
-    for (ind_exp, exp_coord, r_coord) in zip(1:length(eachcol(expansion_sublattice_coords)), eachcol(expansion_sublattice_coords),
-                                    eachcol(real_space_coords))
+    for (ind_exp, exp_coord, r_coord) in zip(
+        1:length(eachrow(expansion_sublattice_coords)),
+        eachrow(expansion_sublattice_coords),
+        eachrow(real_space_coords),
+    )
         temp_connection = []
-        for (ind, sub_coord) in enumerate([per_basis + r_coord
-                                           for per_basis in
-                                               struct_per_basis[exp_coord[end]]])
+        for (ind, sub_coord) in enumerate([
+            per_basis + r_coord for per_basis in struct_per_basis[exp_coord[end]]
+        ])
             sub_coord_loc = findfirst(≈(sub_coord), sub_coords)
             if sub_coord_loc != nothing
                 append!(temp_connection, sub_coord_loc)
                 append!(rev_connection[sub_coord_loc], ind_exp)
             else
                 push!(sub_coords, sub_coord)
-                push!(all_colors, colors[exp_coord[end]][ind])
+                push!(all_labels, labels[exp_coord[end]][ind])
+                push!(all_translation_labels, translation_labels[exp_coord[end]][ind])
                 append!(temp_connection, length(sub_coords))
                 push!(rev_connection, [ind_exp])
             end
@@ -150,7 +216,7 @@ function hashing_lattice_coords(real_space_coords, expansion_sublattice_coords, 
         push!(connection, temp_connection)
     end
 
-    (reduce(hcat, sub_coords), connection, rev_connection, all_colors)
+    (transpose(reduce(hcat, sub_coords)), connection, rev_connection, all_labels, all_translation_labels)
 end
 
 """
@@ -239,20 +305,25 @@ function adj_matrix_to_edge_list(adj_matrix::AbstractMatrix{<:Real})
 
 end
 
-function reindex_adj_list(adj_list::AbstractVector{<:AbstractVector{<:Integer}},
-                          super_vertices::AbstractVector{<:Integer})
+function reindex_adj_list(
+    adj_list::AbstractVector{<:AbstractVector{<:Integer}},
+    super_vertices::AbstractVector{<:Integer},
+)
 
     new_adj_list = adj_list[super_vertices]
     for (super_vertex, neighbors) in enumerate(new_adj_list)
         filtered_neighbors = filter(v -> v in super_vertices, neighbors)
-        new_adj_list[super_vertex] = [findfirst(==(neighbor), super_vertices) for neighbor in filtered_neighbors]
+        new_adj_list[super_vertex] =
+            [findfirst(==(neighbor), super_vertices) for neighbor in filtered_neighbors]
     end
     new_adj_list
 end
 
-function reindex_connections(connections::AbstractVector{<:AbstractVector{<:Integer}},
-                             super_vertices::AbstractVector{<:Integer},
-                             sorted_vertices::AbstractVector{<:Integer})
+function reindex_connections(
+    connections::AbstractVector{<:AbstractVector{<:Integer}},
+    super_vertices::AbstractVector{<:Integer},
+    sorted_vertices::AbstractVector{<:Integer},
+)
 
     new_connections = connections[super_vertices]
     for (super_vertex, connection) in enumerate(new_connections)
@@ -263,15 +334,18 @@ function reindex_connections(connections::AbstractVector{<:AbstractVector{<:Inte
     new_connections
 end
 
-function reindex_adjacency_matrices(adjacency_matrices::AbstractArray{<:Integer, 3},
-                            super_vertices::AbstractVector{<:Integer},
-                             sorted_vertices::AbstractVector{<:Integer})
+function reindex_adjacency_matrices(
+    adjacency_matrices::AbstractArray{<:Integer,3},
+    super_vertices::AbstractVector{<:Integer},
+    sorted_vertices::AbstractVector{<:Integer},
+)
 
     new_adjacency_matrices = adjacency_matrices[:, sorted_vertices, sorted_vertices]
-    for i in 1:size(new_adjacency_matrices, 2)
-        for j in i:size(new_adjacency_matrices, 2)
+    for i = 1:size(new_adjacency_matrices, 2)
+        for j = i:size(new_adjacency_matrices, 2)
             if !(new_adjacency_matrices[3, i, j] == 0)
-                super_vertex_ind = findfirst(==(new_adjacency_matrices[3, i, j]), super_vertices)
+                super_vertex_ind =
+                    findfirst(==(new_adjacency_matrices[3, i, j]), super_vertices)
                 if super_vertex_ind == nothing
                     new_adjacency_matrices[:, i, j] .= 0
                     new_adjacency_matrices[:, j, i] .= 0
@@ -325,31 +399,48 @@ on the given coordinates.
 """
 Below are more cluster related functions, they are not just purely mathematical functions.
 """
-function translationally_invariant_clusters(lattice, start, max_order)
+function translationally_invariant_clusters(lattice, start, max_order, single_site, per_site_factor)
 
-    trans_invar_clusters = unique(c -> c[1], [
-    (Cluster(lattice, cluster_vertices), cluster_vertices)
-                for cluster_vertices in
-                    grow_lower(lattice, start, max_order)
-                ])
+    trans_invar_clusters = unique(
+        c -> c[1],
+        [
+            (Cluster(lattice, cluster_vertices), cluster_vertices) for
+            cluster_vertices in grow_lower(lattice, start, max_order)
+        ],
+    )
+
+    if single_site
+    append!(
+        trans_invar_clusters,
+        repeat(
+            [(
+                Cluster([Int64[]], Vector{Vector{Int}}(), [1; 1; 1;;;], false, false),
+                [1],
+            )],
+            per_site_factor,
+        ),
+    )
+        end
 
     (first.(trans_invar_clusters), last.(trans_invar_clusters))
 end
 
-function lattice_constants(
-    hashing_fxn,
-    per_site_factor::Integer,
-    clusters,
-    super_vertices,
-    )
+function lattice_constants(hashing_fxn, per_site_factor::Integer, clusters, super_vertices)
     # (hash, (Cluster, Multiplicity, Permutation, super_vertices, subclusters(to be filled later)))
-    cluster_info = Dict{UInt, Tuple{Cluster, Rational{Int}, <:Any, <:Any, <:Any}}()
-    add_mult_one = (cluster, mult, perm, svs, subs) -> (cluster, mult + (1 // per_site_factor), perm, svs, subs)
+    cluster_info = Dict{UInt,Tuple{Cluster,Rational{Int},<:Any,<:Any,<:Any}}()
+    add_mult_one =
+        (cluster, mult, perm, svs, subs) ->
+            (cluster, mult + (1 // per_site_factor), perm, svs, subs)
 
     for (ind, (hash, permutation)) in enumerate(hashing_fxn.(clusters))
 
-        cluster_info[hash] =
-            add_mult_one(get(cluster_info, hash, (clusters[ind], 0, permutation, super_vertices[ind], []))...)
+        cluster_info[hash] = add_mult_one(
+            get(
+                cluster_info,
+                hash,
+                (clusters[ind], 0, permutation, super_vertices[ind], []),
+            )...,
+        )
 
     end
 
@@ -358,17 +449,28 @@ end
 
 function find_subclusters(cluster::Cluster, single_site::Bool)
     subclusters = []
-    for order in 1:(nsv(cluster) - 1)
-        append!(subclusters,
-                [(Cluster(cluster, super_verts), super_verts) for super_verts in
-                     grow_exact(cluster, super_vertices(cluster), order)
-                ])
+    for order = 1:(nsv(cluster)-1)
+        append!(
+            subclusters,
+            [
+                (Cluster(cluster, super_verts), super_verts) for
+                super_verts in grow_exact(cluster, super_vertices(cluster), order)
+            ],
+        )
     end
 
     # TODO: Make this work for colored lattices as well
     if single_site
-        append!(subclusters,
-                repeat([(Cluster([Int64[]], Vector{Vector{Int}}(), [1; 1; 1;;;], false, false), [1])], nv(cluster)))
+        append!(
+            subclusters,
+            repeat(
+                [(
+                    Cluster([Int64[]], Vector{Vector{Int}}(), [1; 1; 1;;;], false, false),
+                    [1],
+                )],
+                nv(cluster),
+            ),
+        )
     end
 
     (first.(subclusters), last.(subclusters))
@@ -382,10 +484,7 @@ the algorithm recursively generates a hashmap of the clusters and their
 multiplicities. It will set the multiplicities of all clusters that are
 higher than the given order to 0.
 """
-function nlce_summation(
-    clusters,
-    order::Integer,
-)
+function nlce_summation(clusters, order::Integer)
     cluster_weights = Dict()
 
     for (cluster_hash, (cluster, cluster_mult, _, _, _)) in clusters
@@ -421,10 +520,7 @@ Output:
       Hashmap of cluster hashes and their corresponding multiplicity from
       the cluster specified in cluster_hash
 """
-function _weight(
-    clusters,
-    cluster_hash::Integer,
-)
+function _weight(clusters, cluster_hash::Integer)
     weight_dictionary = Dict([cluster_hash => 1 // 1])
 
     if nv(clusters[cluster_hash][1]) > 1
@@ -514,7 +610,8 @@ sih = [inv * x for x in c2]
 # sigma d reflections through c2' rotations
 sid = [inv * x for x in c2p]
 
-pyrochlore_symmetries = [ident, c2... , c2p... , c3... , c4... , inv, s4... , s6... , sih... , sid...]
+pyrochlore_symmetries =
+    [ident, c2..., c2p..., c3..., c4..., inv, s4..., s6..., sih..., sid...]
 
 
 iden_2D = [1 0; 0 1]
@@ -528,4 +625,13 @@ flip_y = [-1 0; 0 1]
 flip_right_diag = [0 1; 1 0]
 flip_left_diag = [0 -1; -1 0]
 
-square_symmetries = [iden_2D, rotate_90CCW, rotate_180CCW, rotate_270CCW, flip_x, flip_y, flip_right_diag, flip_left_diag]
+square_symmetries = [
+    iden_2D,
+    rotate_90CCW,
+    rotate_180CCW,
+    rotate_270CCW,
+    flip_x,
+    flip_y,
+    flip_right_diag,
+    flip_left_diag,
+]
