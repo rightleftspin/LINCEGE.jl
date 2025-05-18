@@ -7,14 +7,23 @@ module ex1
 using NLCE
 using JLD
 
-square_lattice = Dict("Basis" => [[0, 0]], "Primitive Vectors" => [[1, 0], [0, 1]])
+square_lattice = Dict("Expansion Basis" => [[1/2, 1/2]],
+                      "Struct Per Basis" => [[[-1/2, -1/2], [-1/2, 1/2], [1/2, -1/2], [1/2, 1/2]]],
+                      "Expansion Labels" => [[1, 2, 2, 1]],
+                      "Expansion Primitive Vectors" => [[1, 1], [1, -1]],
+                      "Expansion Neighbors" => [sqrt(2)],
+                      )
 
-neighbors = [1, sqrt(2)]
-max_order = 8
+# Order starts a 0 for the single site, then goes up from there
+neighbors = [1]
+max_order = 6
 
-square_nlce_bundle = NLCE.SiteExpansionBundle(
-    square_lattice["Basis"],
-    square_lattice["Primitive Vectors"],
+square_nlce_bundle = NLCE.WeakClusterExpansionBundle(
+    square_lattice["Expansion Basis"],
+    square_lattice["Struct Per Basis"],
+    square_lattice["Expansion Labels"],
+    square_lattice["Expansion Primitive Vectors"],
+    square_lattice["Expansion Neighbors"],
     neighbors,
     max_order,
     NLCE.isomorphic_pruning,
@@ -22,12 +31,13 @@ square_nlce_bundle = NLCE.SiteExpansionBundle(
 
 square_lattice_cluster_info = NLCE.lattice_constants!(
     square_nlce_bundle,
-    length(NLCE.start(square_nlce_bundle)),
+    (length(unique(Iterators.flatten(square_lattice["Expansion Labels"])))),
+    single_site =true,
 )
 
-NLCE.subclusters!(square_nlce_bundle, false)
+NLCE.subclusters!(square_nlce_bundle, true)
 
-final_weights = NLCE.final_clusters(square_nlce_bundle, false)
+final_weights = NLCE.final_clusters(square_nlce_bundle, true)
 
 num_sites = []
 bond_lists = []
@@ -38,7 +48,7 @@ for (cluster, mults) in final_weights
     push!(multiplicities, mults)
 end
 
-save("./outputs/Square_nnn_Lattice_$(max_order).jld",
+save("./outputs/Square_Lattice_exp_$(max_order).jld",
      "num_sites", num_sites,
      "bond_lists", bond_lists,
      "multiplicities", multiplicities

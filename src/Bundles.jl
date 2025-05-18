@@ -145,23 +145,37 @@ function StrongClusterExpansionBundle(
     neighbors::AbstractVector{<:Real},
     max_order::Integer,
     hashing_fxn;
-    basis_labels::AbstractVector{<:AbstractVector{<:Integer}} = [repeat([1], length(st)) for st in struct_per_basis],
+    basis_labels::AbstractVector{<:AbstractVector{<:Integer}} = [
+        repeat([1], length(st)) for st in struct_per_basis
+    ],
 )
-    lattice, unrotated_lattice = generate_primitive_lattice(expansion_primitive_vectors, max_order)
+    lattice, unrotated_lattice =
+        generate_primitive_lattice(expansion_primitive_vectors, max_order)
 
     exp_coords = add_basis_coords(expansion_basis, lattice)
     exp_sublattice_coords = add_basis_sublattice(expansion_basis, unrotated_lattice)
 
-    unsorted_coords, unsorted_connections, unsorted_rev_connections, unsorted_labels, unsorted_translation_labels =
-        hashing_lattice_coords(exp_coords,
-                                                         exp_sublattice_coords,
-                                                         struct_per_basis,
-                                                         basis_labels,
-                                                        expansion_labels)
+    unsorted_coords,
+    unsorted_connections,
+    unsorted_rev_connections,
+    unsorted_labels,
+    unsorted_translation_labels = hashing_lattice_coords(
+        exp_coords,
+        exp_sublattice_coords,
+        struct_per_basis,
+        basis_labels,
+        expansion_labels,
+    )
 
     exp_adj_list = adj_list_from_coords(exp_coords, expansion_neighbors)
-    unsorted_adj_matrices = adj_matrices_strong(unsorted_coords, neighbors, unsorted_labels, unsorted_translation_labels, collect(Iterators.flatten(unsorted_rev_connections)))
-    start_points = findfirst.(isapprox.(expansion_basis), (eachrow(exp_coords), ))
+    unsorted_adj_matrices = adj_matrices_strong(
+        unsorted_coords,
+        neighbors,
+        unsorted_labels,
+        unsorted_translation_labels,
+        collect(Iterators.flatten(unsorted_rev_connections)),
+    )
+    start_points = findfirst.(isapprox.(expansion_basis), (eachrow(exp_coords),))
 
     sort_perm_coords = sortperm(eachrow(unsorted_coords))
 
@@ -240,23 +254,37 @@ function WeakClusterExpansionBundle(
     neighbors::AbstractVector{<:Real},
     max_order::Integer,
     hashing_fxn;
-    basis_labels::AbstractVector{<:AbstractVector{<:Integer}} = [repeat([1], length(st)) for st in struct_per_basis],
+    basis_labels::AbstractVector{<:AbstractVector{<:Integer}} = [
+        repeat([1], length(st)) for st in struct_per_basis
+    ],
 )
-    lattice, unrotated_lattice = generate_primitive_lattice(expansion_primitive_vectors, max_order)
+    lattice, unrotated_lattice =
+        generate_primitive_lattice(expansion_primitive_vectors, max_order)
 
     exp_coords = add_basis_coords(expansion_basis, lattice)
     exp_sublattice_coords = add_basis_sublattice(expansion_basis, unrotated_lattice)
 
-    unsorted_coords, unsorted_connections, unsorted_rev_connections, unsorted_labels, unsorted_translation_labels =
-        hashing_lattice_coords(exp_coords,
-                                                         exp_sublattice_coords,
-                                                         struct_per_basis,
-                                                         basis_labels,
-                                                        expansion_labels)
+    unsorted_coords,
+    unsorted_connections,
+    unsorted_rev_connections,
+    unsorted_labels,
+    unsorted_translation_labels = hashing_lattice_coords(
+        exp_coords,
+        exp_sublattice_coords,
+        struct_per_basis,
+        basis_labels,
+        expansion_labels,
+    )
 
     exp_adj_list = adj_list_from_coords(exp_coords, expansion_neighbors)
-    unsorted_adj_matrices = adj_matrices_weak(unsorted_coords, neighbors, unsorted_labels, unsorted_translation_labels, unsorted_rev_connections)
-    start_points = findfirst.(isapprox.(expansion_basis), (eachrow(exp_coords), ))
+    unsorted_adj_matrices = adj_matrices_weak(
+        unsorted_coords,
+        neighbors,
+        unsorted_labels,
+        unsorted_translation_labels,
+        unsorted_rev_connections,
+    )
+    start_points = findfirst.(isapprox.(expansion_basis), (eachrow(exp_coords),))
 
     sort_perm_coords = sortperm(eachrow(unsorted_coords))
 

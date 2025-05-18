@@ -20,20 +20,23 @@ end
 
 begin # Individual Cluster Methods
     # TODO: Get cluster coordinates
-    function get_coordinates(bundle::AbstractBundle, cluster::Cluster)
-    end
+    function get_coordinates(bundle::AbstractBundle, cluster::Cluster) end
     # TODO: plot a cluster and plot a lattice here
 end
 
 begin # NLCE methods
-    function lattice_constants!(bundle::AbstractBundle, per_site_factor::Integer; single_site::Bool = false)
+    function lattice_constants!(
+        bundle::AbstractBundle,
+        per_site_factor::Integer;
+        single_site::Bool = false,
+    )
 
         t_i_clusters, super_vertices = translationally_invariant_clusters(
             lattice(bundle),
             start(bundle),
             max_order(bundle),
             single_site,
-            per_site_factor
+            per_site_factor,
         )
 
         cluster_info = lattice_constants(
@@ -58,19 +61,21 @@ begin # NLCE methods
                 mult,
                 perm,
                 svs,
-                lattice_constants(hash_fxn, 1, find_subclusters(cluster, single_site)...),
+                lattice_constants_only_info(hash_fxn, 1, find_subclusters(cluster, single_site)...),
             )
         end
 
         cluster_info(bundle)
     end
 
-    function final_clusters(bundle::AbstractBundle)
+    function final_clusters(bundle::AbstractBundle, start_from_0::Bool)
         # Initialize an empty output dictionary
         output_dict = Dict{Cluster,Vector{<:Real}}()
 
+        start = start_from_0 ? 0 : 1
+
         # Return the final sum for all clusters
-        for order = 1:max_order(bundle)
+        for order = start:max_order(bundle)
             for (hash, mult) in nlce_summation(cluster_info(bundle), order)
                 output_dict[cluster_info(bundle)[hash][1]] = append!(
                     get(output_dict, cluster_info(bundle)[hash][1], Vector{Real}()),

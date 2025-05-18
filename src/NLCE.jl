@@ -19,6 +19,9 @@ include("hashing.jl")
 include("util.jl")
 include("writers.jl")
 
+# Add Ising Model Simulation
+include("ising.jl")
+
 export SiteExpansionBundle, StrongClusterExpansionBundle
 
 end

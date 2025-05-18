@@ -216,7 +216,13 @@ function hashing_lattice_coords(
         push!(connection, temp_connection)
     end
 
-    (transpose(reduce(hcat, sub_coords)), connection, rev_connection, all_labels, all_translation_labels)
+    (
+        transpose(reduce(hcat, sub_coords)),
+        connection,
+        rev_connection,
+        all_labels,
+        all_translation_labels,
+    )
 end
 
 """
@@ -399,7 +405,13 @@ on the given coordinates.
 """
 Below are more cluster related functions, they are not just purely mathematical functions.
 """
-function translationally_invariant_clusters(lattice, start, max_order, single_site, per_site_factor)
+function translationally_invariant_clusters(
+    lattice,
+    start,
+    max_order,
+    single_site,
+    per_site_factor,
+)
 
     trans_invar_clusters = unique(
         c -> c[1],
@@ -410,17 +422,17 @@ function translationally_invariant_clusters(lattice, start, max_order, single_si
     )
 
     if single_site
-    append!(
-        trans_invar_clusters,
-        repeat(
-            [(
-                Cluster([Int64[]], Vector{Vector{Int}}(), [1; 1; 1;;;], false, false),
-                [1],
-            )],
-            per_site_factor,
-        ),
-    )
-        end
+        append!(
+            trans_invar_clusters,
+            repeat(
+                [(
+                    Cluster([Int64[]], Vector{Vector{Int}}(), [1; 1; 1;;;], false, false),
+                    [1],
+                )],
+                per_site_factor,
+            ),
+        )
+    end
 
     (first.(trans_invar_clusters), last.(trans_invar_clusters))
 end
@@ -439,6 +451,28 @@ function lattice_constants(hashing_fxn, per_site_factor::Integer, clusters, supe
                 cluster_info,
                 hash,
                 (clusters[ind], 0, permutation, super_vertices[ind], []),
+            )...,
+        )
+
+    end
+
+    cluster_info
+end
+
+function lattice_constants_only_info(hashing_fxn, per_site_factor::Integer, clusters, super_vertices)
+    # (hash, (Cluster, Multiplicity, Permutation, super_vertices, subclusters(to be filled later)))
+    cluster_info = Dict{UInt,Rational{Int}}()
+    add_mult_one =
+        (mult) ->
+            (mult + (1 // per_site_factor))
+
+    for (ind, (hash, permutation)) in enumerate(hashing_fxn.(clusters))
+
+        cluster_info[hash] = add_mult_one(
+            get(
+                cluster_info,
+                hash,
+                0,
             )...,
         )
 
@@ -490,6 +524,7 @@ function nlce_summation(clusters, order::Integer)
     for (cluster_hash, (cluster, cluster_mult, _, _, _)) in clusters
         # Set clusters higher than the order to 0,
         if nsv(cluster) > order
+
             cluster_weights[cluster_hash] = 0
         else
             weights = _weight(clusters, cluster_hash)
@@ -524,7 +559,7 @@ function _weight(clusters, cluster_hash::Integer)
     weight_dictionary = Dict([cluster_hash => 1 // 1])
 
     if nv(clusters[cluster_hash][1]) > 1
-        for (subcluster_hash, (_, subcluster_mult, _, _, _)) in clusters[cluster_hash][5]
+        for (subcluster_hash, subcluster_mult) in clusters[cluster_hash][5]
             sub_weights = _weight(clusters, subcluster_hash)
             map!(mult -> -1 * subcluster_mult * mult, values(sub_weights))
             weight_dictionary = mergewith(+, weight_dictionary, sub_weights)
@@ -635,3 +670,74 @@ square_symmetries = [
     flip_right_diag,
     flip_left_diag,
 ]
+
+"""
+Resummation techniques and related functions. These resummation
+techniques will take in a multidimensional array where the first
+index is the property (energy, entropy, etc), the second index
+is the independent variable (temperature, magnetic field, etc),
+and the third index is over each order in the NLCE bare sum,
+where each order corresponds to the partial sum up till that
+order, from the weights returned by LINCEGE
+"""
+# TODO: Write the resummation functions more generally
+function bincoeff(n, k)
+    r = 1
+    if (k > n)
+      return 0
+    end
+
+    for d in 1:k
+        r = r * n / d
+        n -= 1
+    end
+
+    r
+end
+
+function break_properties(properties)
+    broken_props = zero(properties)
+    broken_props[:, :, 1] = properties[:, :, 1]
+
+    for i in 2:size(properties, 3)
+        broken_props[:, :, i] = properties[:, :, i] - properties[:, :, i - 1]
+    end
+
+    broken_props
+end
+
+function euler_resummation(properties, start)
+    broken_props = break_properties(properties[:, :, 1:(end - 2)])
+    partial_prop = broken_props[:, :, start:end]
+    out = zero(partial_prop)
+    for i in 1:size(partial_prop, 3)
+        delta = zero(partial_prop[:, :, 1])
+        for j in 1:i
+            coeff = bincoeff(i, j)
+            delta += (-1) ^ (j) * coeff .*
+                abs.(partial_prop[:, :, j])
+        end
+        out[:, :, i] += (0.5 ^ (i + 1)) .* delta
+    end
+
+    (sum(out, dims=3) + properties[:, :, start - 1])
+end
+
+function eps_wynn(k, n, properties)
+    if k == 0
+        properties[:, :, n]
+    elseif k == -1
+        zero(properties[:, :, n])
+    else
+        first = eps_wynn(k - 2, n + 1, properties)
+        second = eps_wynn(k - 1, n + 1, properties) .- eps_wynn(k - 1, n, properties)
+        total = first + 1 ./ second
+        total
+    end
+end
+
+function wynn_resummation(properties, wynn_cycles)
+    final_order = size(properties, 3)
+
+    eps_wynn((2 * wynn_cycles), final_order - (2 * wynn_cycles), properties)
+end
