@@ -2,9 +2,10 @@ module NLCE
 
 using LinearAlgebra
 using Distances
-using Rotations
+using DataStructures
+using StaticArrays
 using NautyGraphs
-using JSON3 
+using JSON3
 
 # Add the relevant structs
 include("Clusters.jl")
@@ -24,11 +25,11 @@ include("wrappers.jl")
 include("ising.jl")
 
 export SiteExpansionBundle,
-    StrongClusterExpansionBundle,
-    WeakClusterExpansionBundle,
-    site_expansion_NLCE,
-    simple_NLCE,
-    write_to_file,
-    write_to_file_fortran
+        StrongClusterExpansionBundle,
+        WeakClusterExpansionBundle,
+        site_expansion_NLCE,
+        simple_NLCE,
+        write_to_file,
+        write_to_file_fortran
 
 end
