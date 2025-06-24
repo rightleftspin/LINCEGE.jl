@@ -17,7 +17,7 @@ to perform NLCE.
 
 Follow the documented tutorials for LINCEGE.jl below.
 
-[`Stable`](https://LINCEGE.github.io/LINCEGE.jl/stable/): Documentation for the
+[`Main`](https://LINCEGE.github.io/LINCEGE.jl/main/): Documentation for the
 latest version of the code
 
 ## Contact and Citation

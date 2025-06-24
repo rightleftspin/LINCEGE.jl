@@ -53,5 +53,9 @@ function Tiling(
         )
 end
 
-dimension(tiling::Tiling) = length(tiling.translation_vectors[1])
+dimension(tiling::Tiling) = length(tiling.translation_vectors)
 real_space_neighbors(tiling::Tiling) = tiling.real_space_neighbors
+
+function lattices(tiling::Tiling, max_order::Integer)
+end
+
