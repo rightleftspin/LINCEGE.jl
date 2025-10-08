@@ -1,61 +1,37 @@
+# Neighbor functions take in Coordinates and return weighted adjacency matrices
+# Label functions take in Coordinates and return vector of labels
 struct Tiling{
-        B<:AbstractVector{<:AbstractVector{<:AbstractVector{<:Real}}},
-        T<:AbstractVector{AbstractVector{<:Real}},
-        L<:AbstractVector{AbstractVector{<:Integer}},
-        N<:AbstractVector{<:Real},
+        B<:AbstractVector{<:AbstractMatrix{<:Real}},
+        T<:AbstractMatrix{<:Real},
         F,
 }
-        tiling_unit::B
+        tiling_units::B
         translation_vectors::T
-        translation_labels::L
-        expansion_neighbors::N
-        real_space_neighbors::N
-        labels::L
         neighbor_fn::F
-end
+        exp_neighbor_fn::F
+        label_fn::F
 
-function Tiling(
-        basis::AbstractVector{<:AbstractVector{<:Real}},
-        primitive_vectors::AbstractVector{AbstractVector{<:Real}},
-        neighbors::AbstractVector{<:Real};
-        labels::AbstractVector{<:Integer}=repeat([1], length(basis)),
-        neighbor_fn::Function=(
-                (
-                        lattice::RealSpaceLattice,
-                        adj_coordinates::Vector{CartesianIndex{2}},
-                        distance_index::Int,
-                ) -> repeat([distance_index], length(adj_coordinates))
-        ),
-        expand_by_basis::Bool=false,
-)
+        function Tiling(tiling_units::AbstractVector{<:AbstractVector{<:AbstractVector{<:Real}}}, translation_vectors::AbstractVector{<:AbstractVector{<:Real}}, neighbor_fn, exp_neighbor_fn, label_fn)
+                Tiling(
+                        [collect(transpose(hcat(i...))) for i in tiling_units],
+                        collect(transpose(hcat(translation_vectors...))),
+                        neighbor_fn,
+                        exp_neighbor_fn,
+                        label_fn,
+                )
 
-        tiling_unit = Vector{Vector{Vector{Float64}}}[]
-        if expand_by_basis
-                tiling_unit = [basis]
-        else
-                for basis_elem in basis
-                        push!(tiling_unit, [basis_elem])
-                end
         end
-
-        translation_vectors = primitive_vectors
-        translation_labels = [collect(1:length(basis))]
-        opt_labels = [labels]
-
-        Tiling(
-                tiling_unit,
-                translation_vectors,
-                translation_labels,
-                neighbors,
-                neighbors,
-                opt_labels,
-                neighbor_fn,
-        )
 end
 
-dimension(tiling::Tiling) = length(tiling.translation_vectors)
-real_space_neighbors(tiling::Tiling) = tiling.real_space_neighbors
+tiling_units(tiling::Tiling) = tiling.tiling_units
+translation_vectors(tiling::Tiling) = tiling.translation_vectors
+neighbors(tiling::Tiling, coordinates::Coordinates) = tiling.neighbor_fn(coordinates)
+exp_neighbors(tiling::Tiling, coordinates::Coordinates) = tiling.exp_neighbor_fn(coordinates)
+labels(tiling::Tiling, coordinates::Coordinates) = tiling.label_fn(coordinates)
 
-function lattices(tiling::Tiling, max_order::Integer)
+"Find the center of each tiling unit in the tiling"
+function find_centers(tiling::Tiling)
+        find_center.(tiling_units(tiling))
 end
 
+# TODO: Create constructors for tiling in various ways. Base tiling is complete already
