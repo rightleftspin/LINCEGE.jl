@@ -7,7 +7,7 @@ A data structure that represents a cluster on a given lattice.
 - `vertices::V`: The vertices of the cluster.
 - `neighbors::V`: The vertices neighboring the cluster.
 """
-struct TranslationCluster{V<:AbstractVertices, H<:TranslationHash} <: AbstractCluster{V, H}
+struct TranslationCluster{V<:AbstractVertices,H<:TranslationHash} <: AbstractCluster{V,H}
     vertices::V
     ghash::H
     neighbors::V
@@ -41,7 +41,7 @@ function neighbor_clusters(
 )
     ns = TranslationCluster[]
     for n in neighbors(cluster)
-        push!(ns, neighbor_cluster(cluster, ExpansionVertices(n), lattice))
+        push!(ns, neighbor_cluster(cluster, eltype(cluster)(n), lattice))
     end
     ns
 end

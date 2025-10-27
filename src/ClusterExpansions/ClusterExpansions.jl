@@ -1,66 +1,83 @@
 module ClusterExpansions
 
+import DataStructures:
+    Deque
+
 import LINCEGE:
     Vertices.AbstractVertices,
     Lattices.AbstractLattice,
     Lattices.AbstractSiteExpansionLattice,
     Lattices.AbstractClusterExpansionLattice,
+    Lattices.max_order,
+    Lattices.n_unique_sites,
+    GraphHashes.AbstractGraphHash,
+    GraphHashes.IsomorphicHash,
     Clusters.AbstractCluster,
-    ClusterSets.AbstractClusters,
+    Clusters.IsomorphicCluster,
+    Clusters.Subgraph,
+    Clusters.ghash,
+    Clusters.lattice_constant,
+    Clusters.vertices,
+    Clusters.hashtype,
+    Clusters.parent_hash,
+    ClusterCollections.AbstractClusters,
+    ClusterCollections.IsomorphicClusters,
+    ClusterCollections.Subgraphs,
+    ClusterCollections.get_orders,
     _NI
 
-abstract type AbstractClusterExpansion{C<:AbstractCluster} end
-abstract type AbstractSiteClusterExpansion{C<:AbstractCluster} <: AbstractClusterExpansion{C} end
-abstract type AbstractClusterClusterExpansion{C<:AbstractCluster} <: AbstractClusterExpansion{C} end
+abstract type AbstractExpansion{C<:AbstractCluster} end
+abstract type AbstractSiteExpansion{C<:AbstractCluster} <: AbstractExpansion{C} end
+abstract type AbstractClusterExpansion{C<:AbstractCluster} <: AbstractExpansion{C} end
 
-Base.getindex(ce::AbstractClusterExpansion, cluster::AbstractCluster, order::Int) = _NI("getindex")
-Base.setindex!(ce::AbstractClusterExpansion, value, cluster::AbstractCluster, order::Int) = _NI("setindex!")
-add_subgraphs!(ce::AbstractClusterExpansion, cluster::AbstractCluster, lattice::AbstractLattice) = _NI("add_subgraphs!")
-subgraphs(ce::AbstractClusterExpansion, cluster::AbstractCluster) = _NI("subgraphs")
+Base.iterate(ce::AbstractExpansion) = _NI("iterate")
+Base.iterate(ce::AbstractExpansion, state) = _NI("iterate")
+Base.getindex(ce::AbstractExpansion, ghash::AbstractGraphHash, order::Int) = _NI("getindex")
+Base.setindex!(ce::AbstractExpansion, lattice_constant::Real, ghash::AbstractGraphHash, order::Int) = ce.multiplicities[ghash][order] = lattice_constant
+subgraphs(ce::AbstractExpansion, cluster::AbstractCluster) = _NI("subgraphs")
+subgraphs(ce::AbstractExpansion, ghash::AbstractGraphHash) = _NI("subgraphs")
 
-#function add_lattice_constant!(ce::AbstractClusterExpansion, cluster::AbstractCluster, lattice::AbstractSiteExpansionLattice)
-#    ce[cluster, length(cluster)] = lattice_constant(cluster)
-#    add_subgraphs!(ce, cluster, lattice)
-#end
-#
-#function add_lattice_constant!(LCE::AbstractLCE, cluster::AbstractCluster, lattice::AbstractClusterExpansionLattice)
-#    LCE[cluster, length(cluster)+1] = lattice_constant(cluster)
-#    add_subgraphs!(LCE, cluster, lattice)
-#end
-#
-#function subtract_subgraph_contribution!(LCE::AbstractSiteLCE, lattice_constant::Integer, cluster::AbstractCluster, subgraph::AbstractCluster, depth::Integer)
-#    order = length(cluster)
-#    LCE[subgraph, order] += ((-1)^depth) * lattice_constant
-#    for lower_subgraph in subgraphs(LCE, subgraph)
-#        subtract_subgraph_contribution!(LCE, lattice_constant, subgraph, lower_subgraph, depth + 1)
-#    end
-#end
-#
-#function subtract_subgraph_contribution!(LCE::AbstractClusterLCE, lattice_constant::Integer, cluster::AbstractCluster, subgraph::AbstractCluster, depth::Integer)
-#    order = length(cluster) + 1
-#    LCE[subgraph, order] += ((-1)^depth) * lattice_constant
-#    for lower_subgraph in subgraphs(LCE, subgraph)
-#        subtract_subgraph_contribution!(LCE, lattice_constant, subgraph, lower_subgraph, depth + 1)
-#    end
-#end
-#
-#function nLCE_summation(cluster_set::AbstractClusterSet, lattice::AbstractLattice, LCE_type::Type{<:AbstractLCE})
-#    LCE = LCE_type(cluster_set, lattice)
-#
-#    @info "Starting LCE summation for orders $(min_order(lattice)) through $(max_order(lattice))."
-#
-#    for order in min_order(lattice):max_order(lattice)
-#        current_order_clusters = get_order(cluster_set, order)
-#        for cluster in current_order_clusters
-#            add_lattice_constant!(LCE, cluster, lattice)
-#            for subgraph in subgraphs(LCE, cluster)
-#                subtract_subgraph_contribution!(LCE, lattice_constant(cluster), cluster, subgraph, 1)
-#            end
-#        end
-#    end
-#
-#    @info "LCE summation complete."
-#    LCE
-#end
+function Base.show(io::IO, ce::AbstractExpansion)
+    println(io, "Clusters and their multiplicities:")
+    for (ghash, cluster, mults) in ce
+        println(io, "Cluster: ", cluster, " - Multiplicities: ", mults)
+    end
+end
+
+# Try enumerating such that all the clusters are stored in a vector and not in a dictionary format
+function summation!(ce::AbstractExpansion, clusters::AbstractClusters, lattice::AbstractSiteExpansionLattice)
+    @info "Starting summation for orders 1 through $(max_order(lattice))."
+    for (order, clusters_order) in enumerate(get_orders(clusters, lattice))
+        for (ghash, cluster) in clusters_order
+            updated_lattice_constant = lattice_constant(cluster) / n_unique_sites(lattice)
+            ce[ghash, order] = updated_lattice_constant
+
+            subgraphs_stack = Deque{Tuple{hashtype(cluster),Int}}()
+            pushfirst!(subgraphs_stack, (ghash, 0))
+            while !isempty(subgraphs_stack)
+                current_ghash, current_depth = pop!(subgraphs_stack)
+                for (_, subgraph) in subgraphs(ce, current_ghash)
+                    phash = parent_hash(subgraph)
+                    ce[phash, order] += ((-1)^(current_depth + 1)) * updated_lattice_constant
+                    pushfirst!(subgraphs_stack, (phash, current_depth + 1))
+                end
+            end
+
+        end
+    end
+
+    @info "summation complete."
+    ce
+end
+
+include("SiteExpansions.jl")
+
+export AbstractExpansion,
+    AbstractSiteExpansion,
+    AbstractClusterExpansion,
+    SiteExpansion,
+    add_lattice_constant!,
+    subtract_subgraph_contribution!,
+    summation!
 
 end

@@ -24,8 +24,4 @@ include("ClusterExpansions/ClusterExpansions.jl")
 # Extra Physics Related Code, generally slow and not needed for basic Cluster Expansion construction
 include("Physics/Physics.jl")
 include("NLCEs/NLCEs.jl")
-
-export Lattices,
-    NLCE,
-    Physics
 end

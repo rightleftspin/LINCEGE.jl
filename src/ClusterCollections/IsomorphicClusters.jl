@@ -1,16 +1,17 @@
-struct IsomorphicClusters{H<:IsomorphicHash, C<:IsomorphicCluster} <: AbstractClusters{H, C}
+struct IsomorphicClusters{H<:IsomorphicHash,C<:IsomorphicCluster} <: AbstractClusters{H,C}
     clusters::Dict{H,C}
 end
 
-IsomorphicClusters() = IsomorphicClusters(Dict{IsomorphicHash, IsomorphicCluster}())
+IsomorphicClusters() = IsomorphicClusters(Dict{IsomorphicHash,IsomorphicCluster}())
+IsomorphicClusters{IsomorphicHash,IsomorphicCluster}() = IsomorphicClusters(Dict{IsomorphicHash,IsomorphicCluster}())
 
 function IsomorphicClusters(translation_clusters::TranslationClusters, lattice::AbstractLattice)
-    partitioned = IsomorphicClusters()
+    refined = IsomorphicClusters()
     rlock = ReentrantLock()
 
-    @info "Starting parallel partitioning with $(nthreads()) threads."
+    @info "Starting parallel refinement with $(nthreads()) threads."
 
-    @threads for (ghash, translation_cluster) in translation_clusters
+    for (_, translation_cluster) in translation_clusters
         cluster = IsomorphicCluster(translation_cluster, lattice)
 
         lock(rlock) do
@@ -18,9 +19,9 @@ function IsomorphicClusters(translation_clusters::TranslationClusters, lattice::
         end
     end
 
-    @info "Partitioning complete with $(length(partitioned)) unique clusters."
+    @info "Refinement complete with $(length(refined)) unique clusters."
 
-    partitioned
+    refined
 end
 
 _clusters(cs::IsomorphicClusters) = cs.clusters
@@ -29,9 +30,9 @@ Base.iterate(cs::IsomorphicClusters) = iterate(_clusters(cs))
 Base.iterate(cs::IsomorphicClusters, state) = iterate(_clusters(cs), state)
 Base.getindex(cs::IsomorphicClusters, ghash::IsomorphicHash) = getindex(cs.clusters, ghash)
 Base.haskey(cs::IsomorphicClusters, ghash::IsomorphicHash) = haskey(cs.clusters, ghash)
-function Base.setindex!(cs::IsomorphicClusters, ghash::IsomorphicHash, cluster::IsomorphicCluster)
+function Base.setindex!(cs::IsomorphicClusters, cluster::IsomorphicCluster, ghash::IsomorphicHash)
     if ghash in cs
-        merge!(cs.clusters[ghash], cluster)
+        cs.clusters[ghash] = merge!(cs[ghash], cluster)
     else
         cs.clusters[ghash] = cluster
     end

@@ -1,4 +1,4 @@
-struct TranslationClusters{H<:TranslationHash, C<:TranslationCluster} <: AbstractClusters{H, C}
+struct TranslationClusters{H<:TranslationHash,C<:TranslationCluster} <: AbstractClusters{H,C}
     clusters::Dict{H,C}
 end
 
@@ -7,7 +7,7 @@ function TranslationClusters()
 end
 
 function TranslationClusters(centers::AbstractVertices, lattice::AbstractSiteExpansionLattice)
-    roots = TranslationClusters{TranslationHash, TranslationCluster}()
+    roots = TranslationClusters()
     for v in centers
         cluster = TranslationCluster(typeof(centers)(v), lattice)
         roots[ghash(cluster)] = cluster
@@ -15,18 +15,45 @@ function TranslationClusters(centers::AbstractVertices, lattice::AbstractSiteExp
     roots
 end
 
-"""
-    TranslationClusters(lattice::AbstractSiteExpansionLattice, max_order::Int; spawn_depth::Int=2)
+#function TranslationClusters(lattice::AbstractSiteExpansionLattice)
+#    max_depth = max_order(lattice)
+#    roots = TranslationClusters(centers(lattice), lattice)
+#    visited = TranslationClusters()
+#    stack = Vector{TranslationCluster}()
+#
+#    @info "Starting DFS with stack with $(nthreads()) threads."
+#
+#    function try_mark(cluster::TranslationCluster)
+#        #lock(vlock)
+#        already = cluster in visited
+#        if !already
+#            visited[ghash(cluster)] = cluster
+#        end
+#        #unlock(vlock)
+#        !already
+#    end
+#
+#    for (ghash, c) in roots
+#        push!(stack, c)
+#        while !isempty(stack)
+#            cluster = pop!(stack)
+#            if try_mark(cluster) && length(cluster) < max_depth
+#                for sc in neighbor_clusters(cluster, lattice)
+#                    push!(stack, sc)
+#                end
+#            end
+#        end
+#    end
+#
+#    @info "DFS complete with stack, found $(length(visited)) clusters."
+#
+#    visited
+#end
 
-Parallel DFS over the subgraph tree of an arbitrary site expansion lattice.
-- `lattice`: provides the neighbor clusters of each cluster
-- `max_order`: maximum NLCE expansion order
-- `spawn_depth`: sequentially explore until this depth; deeper levels spawn tasks
-"""
-function TranslationClusters(lattice::AbstractSiteExpansionLattice; spawn_depth::Int=2)
-    max_order = max_order(lattice)
+function TranslationClusters(lattice::AbstractSiteExpansionLattice; spawn_depth::Int=3)
+    max_depth = max_order(lattice)
     roots = TranslationClusters(centers(lattice), lattice)
-    visited = TranslationClusters{TranslationHash, TranslationCluster}()
+    visited = TranslationClusters()
     vlock = ReentrantLock()
 
     @info "Starting parallel DFS with $(nthreads()) threads."
@@ -39,7 +66,7 @@ function TranslationClusters(lattice::AbstractSiteExpansionLattice; spawn_depth:
         end
         unlock(vlock)
 
-        if length(cluster) == max_order
+        if length(cluster) == max_depth
             return false
         end
         !already
@@ -73,8 +100,8 @@ function TranslationClusters(lattice::AbstractSiteExpansionLattice; spawn_depth:
         end
     end
 
-    for r in roots
-        dfs(r, 0)
+    for (ghash, c) in roots
+        dfs(c, 0)
     end
 
     @info "DFS complete with $(length(visited)) clusters."
@@ -100,4 +127,4 @@ Base.iterate(cs::TranslationClusters) = iterate(_clusters(cs))
 Base.iterate(cs::TranslationClusters, state) = iterate(_clusters(cs), state)
 Base.getindex(cs::TranslationClusters, ghash::TranslationHash) = getindex(cs.clusters, ghash)
 Base.haskey(cs::TranslationClusters, ghash::TranslationHash) = haskey(cs.clusters, ghash)
-Base.setindex!(cs::TranslationClusters, ghash::TranslationHash, cluster::TranslationCluster) = setindex!(cs.clusters, ghash, cluster)
+Base.setindex!(cs::TranslationClusters, cluster::TranslationCluster, ghash::TranslationHash) = setindex!(cs.clusters, cluster, ghash)
