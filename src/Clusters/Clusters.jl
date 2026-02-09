@@ -1,38 +1,38 @@
 module Clusters
 
+using Base.Threads
+
 import LINCEGE:
-    Vertices.AbstractVertices,
-    Lattices.AbstractLattice,
-    Lattices.neighbors,
-    GraphHashes.AbstractGraphHash,
-    GraphHashes.TranslationHash,
-    GraphHashes.IsomorphicHash,
-    GraphHashes.VertexHash,
-    GraphHashes.AbstractPermutation,
-    GraphHashes.EmptyPermutation,
-    GraphHashes.IsomorphicPermutation,
-    _NI
+    _NI,
+    Lattices.AbstractLattice
 
-abstract type AbstractCluster{V<:AbstractVertices,H<:AbstractGraphHash} end
+abstract type AbstractClusterID end
+abstract type AbstractCluster end
+abstract type AbstractClusters{C<:AbstractCluster} end
 
-vertices(cluster::AbstractCluster) = _NI("vertices")
-ghash(cluster::AbstractCluster) = _NI("ghash")
-lattice_constant(cluster::AbstractCluster) = _NI("lattice_constant")
+# Cluster Methods
+lattice_constant(c::AbstractCluster) = _NI("lattice_constant")
+order(c::AbstractCluster) = _NI("order")
+get_subclusters(c::AbstractCluster) = _NI("get_subclusters")
+add_subclusters!(c::AbstractCluster, cids::Vector{AbstractClusterID}) = _NI("get_subclusters")
 
-Base.eltype(cluster::AbstractCluster{V,H}) where {V,H} = V
-Base.length(cluster::AbstractCluster) = length(vertices(cluster))
-Base.show(io::IO, cluster::AbstractCluster) = print(io, "Cluster with $(vertices(cluster)) and Lattice Constant $(lattice_constant(cluster))")
-hashtype(cluster::AbstractCluster{V,H}) where {V,H} = H
+# Cluster Collection Methods
+Base.length(cs::AbstractClusters)::Int = _NI("Base.length")
+Base.getindex(cs::AbstractClusters, cid::AbstractClusterID) = _NI("Base.getindex")
+Base.in(cluster::C, cs::AbstractClusters{C}) where {C<:AbstractCluster} = _NI("Base.in")
+Base.iterate(cs::AbstractClusters) = _NI("Base.iterate")
+Base.iterate(cs::AbstractClusters, state) = _NI("Base.iterate")
 
-include("TranslationClusters.jl")
-include("IsomorphicClusters.jl")
-include("Subgraphs.jl")
+get_id(cs::AbstractClusters, c::AbstractCluster) = _NI("get_id")
+lattice_constant(cs::AbstractClusters, cid::AbstractClusterID) = lattice_constant(cs[cid])
+order(cs::AbstractClusters, cid::AbstractClusterID) = order(cs[cid])
+get_subclusters(cs::AbstractClusters, cid::AbstractClusterID) = get_subclusters(cs[cid])
 
-export AbstractCluster,
-    TranslationCluster,
-    IsomorphicCluster,
-    Subgraph,
-    vertices,
-    ghash,
-    lattice_constant
+Base.show(io::IO, cs::AbstractClusters) = print(io, "Cluster Collection with $(length(cs)) clusters.")
+
+function get_order(cs::AbstractClusters, order::Int)
+    filter(cid -> order(cs, cid), cs)
+end
+
+include("Subclusters/Subclusters.jl")
 end
