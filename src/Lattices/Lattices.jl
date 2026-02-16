@@ -20,6 +20,7 @@ max_order(lattice::AbstractLattice) = _NI("max_order")
 neighbors(lattice::AbstractLattice, vs::AbstractVertices) = _NI("neighbors")
 get_coordinates(lattice::AbstractLattice) = _NI("get_coordinates")
 get_labels(lattice::AbstractLattice) = _NI("get_labels")
+get_site_colors(lattice::AbstractLattice) = _NI("get_site_colors")
 
 include("InfiniteLattices/InfiniteLattices.jl")
 

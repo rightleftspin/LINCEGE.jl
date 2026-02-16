@@ -7,7 +7,8 @@ import LINCEGE:
     Lattices.AbstractLattice,
     Lattices.SiteExpansionLattice,
     Clusters.AbstractCluster,
-    Clusters.AbstractClusterSet
+    Clusters.AbstractClusterSet,
+    Clusters.ghash
 
 abstract type AbstractExpansion end
 

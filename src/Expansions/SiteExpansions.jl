@@ -20,6 +20,8 @@ function SiteExpansion(clusters::AbstractClusterSet, lattice::SiteExpansionLatti
         weights[i, length(cluster)] = cluster.lc
         temp_subgraphs::Vector{Int} = []
         for subgraph_evs in get_subgraphs(cluster, lattice)
+            #println(length(subgraph_evs))
+            #println(ghash(clusters, subgraph_evs))
             push!(temp_subgraphs, index_dictionary[ghash(clusters, subgraph_evs)])
         end
         push!(subgraphs, temp_subgraphs)

@@ -1,6 +1,7 @@
 function get_subgraphs(c::AbstractCluster, lattice::SiteExpansionLattice)
     max_depth = length(c) - 1
     roots = [ExpansionVertices(center) for center in c.evs]
+    println(roots)
     visited = Set(roots)
     vlock = ReentrantLock()
 

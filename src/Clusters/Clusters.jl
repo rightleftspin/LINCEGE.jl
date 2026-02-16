@@ -2,6 +2,7 @@ module Clusters
 
 using Base.Threads
 using LinearAlgebra
+using NautyGraphs
 
 import LINCEGE:
     _NI,
@@ -11,6 +12,7 @@ import LINCEGE:
     Lattices.neighbors,
     Lattices.get_coordinates,
     Lattices.get_labels,
+    Lattices.get_site_colors,
     Lattices.bond_matrix,
     Lattices.AbstractLattice,
     Lattices.SiteExpansionLattice

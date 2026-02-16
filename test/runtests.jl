@@ -129,7 +129,10 @@ using Test
     @testset verbose = true "Clusters" begin
         import LINCEGE:
             Clusters.ClusterSet,
-            Clusters.clusters_from_lattice!
+            Clusters.IsomorphicClusterSet,
+            Clusters.clusters_from_lattice!,
+            Clusters.clusters_from_clusters!,
+            Expansions.SiteExpansion
 
         @testset "Translation Clusters Square" begin
             basis = [[0.0, 0.0]]
@@ -137,11 +140,19 @@ using Test
             bonds = [Bond(1, 1, [1, 0], 1), Bond(1, 1, [0, 1], 1)]
             unit_cell = UnitCell(basis, primitive_vectors, bonds)
 
-            m_order = 4
+            m_order = 3
             lattice = SiteExpansionLattice(m_order, unit_cell)
             translation_clusters = ClusterSet(lattice)
             clusters_from_lattice!(translation_clusters, lattice)
             println("Num Clusters: $(length(translation_clusters))")
+
+            iso_clusters = IsomorphicClusterSet(lattice)
+            clusters_from_clusters!(iso_clusters, translation_clusters)
+            println("Num Iso Clusters: $(length(iso_clusters))")
+
+            #expansion = SiteExpansion(iso_clusters, lattice, m_order)
+            #print(expansion.subgraphs)
+            #summation!(expansion)
 
         end
     end

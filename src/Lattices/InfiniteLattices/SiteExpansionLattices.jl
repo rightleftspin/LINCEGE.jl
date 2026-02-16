@@ -23,4 +23,5 @@ neighbors(lattice::SiteExpansionLattice, vs::ExpansionVertices) = union(Expansio
 
 get_coordinates(lattice::SiteExpansionLattice) = shift_unit_cell(lattice.unit_cell, lattice.coordinates)
 get_labels(lattice::SiteExpansionLattice) = lattice.coordinates[end, :]
+get_site_colors(lattice::SiteExpansionLattice) = lattice.unit_cell.site_colors[lattice.coordinates[end, :]]
 bond_matrix(lattice::SiteExpansionLattice) = generate_weighted_adj_matrix(lattice.coordinates, lattice.unit_cell)

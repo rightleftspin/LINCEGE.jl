@@ -10,6 +10,13 @@ function ClusterSet(lattice::AbstractLattice)
     )
 end
 
+function IsomorphicClusterSet(lattice::AbstractLattice)
+    ClusterSet{Cluster,IsomorphicHasher}(
+        Set{Cluster}(),
+        IsomorphicHasher(lattice)
+    )
+end
+
 Base.length(cs::ClusterSet) = length(cs.clusters)
 Base.in(c::C, cs::ClusterSet{C,H}) where {C<:AbstractCluster,H} = c in cs.clusters
 Base.iterate(cs::ClusterSet) = iterate(cs.clusters)
