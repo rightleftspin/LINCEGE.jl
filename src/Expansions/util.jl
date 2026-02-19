@@ -1,17 +1,16 @@
 function get_subgraphs(c::AbstractCluster, lattice::SiteExpansionLattice)
+    if length(c) == 1
+        return Set()
+    end
     max_depth = length(c) - 1
     roots = [ExpansionVertices(center) for center in c.evs]
-    println(roots)
-    visited = Set(roots)
-    vlock = ReentrantLock()
+    visited = Set()
 
     function try_mark(cluster::ExpansionVertices)
-        lock(vlock)
         already = cluster in visited
         if !already
             push!(visited, cluster)
         end
-        unlock(vlock)
 
         if length(cluster) == max_depth
             return false
@@ -23,9 +22,9 @@ function get_subgraphs(c::AbstractCluster, lattice::SiteExpansionLattice)
         if !try_mark(cluster)
             return
         end
-        for ev in neighbors(lattice, cluster.evs)
+        for ev in neighbors(lattice, cluster)
             if ev in c.evs
-                dfs(union(cluster.evs, ExpansionVertices(ev)))
+                dfs(union(cluster, ExpansionVertices(ev)))
             end
         end
     end

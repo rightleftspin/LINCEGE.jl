@@ -132,7 +132,8 @@ using Test
             Clusters.IsomorphicClusterSet,
             Clusters.clusters_from_lattice!,
             Clusters.clusters_from_clusters!,
-            Expansions.SiteExpansion
+            Expansions.SiteExpansion,
+            Expansions.summation!
 
         @testset "Translation Clusters Square" begin
             basis = [[0.0, 0.0]]
@@ -150,9 +151,14 @@ using Test
             clusters_from_clusters!(iso_clusters, translation_clusters)
             println("Num Iso Clusters: $(length(iso_clusters))")
 
-            #expansion = SiteExpansion(iso_clusters, lattice, m_order)
-            #print(expansion.subgraphs)
-            #summation!(expansion)
+            expansion = SiteExpansion(iso_clusters, lattice, m_order)
+            println("Summation Started")
+            t1 = time()
+            summation!(expansion, m_order)
+            elapsed_time = time() - t1
+            println("Elapsed time: ", elapsed_time, " seconds")
+            println("Summation Complete")
+            println(expansion.weights)
 
         end
     end

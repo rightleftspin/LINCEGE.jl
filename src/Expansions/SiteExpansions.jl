@@ -20,8 +20,6 @@ function SiteExpansion(clusters::AbstractClusterSet, lattice::SiteExpansionLatti
         weights[i, length(cluster)] = cluster.lc
         temp_subgraphs::Vector{Int} = []
         for subgraph_evs in get_subgraphs(cluster, lattice)
-            #println(length(subgraph_evs))
-            #println(ghash(clusters, subgraph_evs))
             push!(temp_subgraphs, index_dictionary[ghash(clusters, subgraph_evs)])
         end
         push!(subgraphs, temp_subgraphs)
@@ -35,6 +33,10 @@ function SiteExpansion(clusters::AbstractClusterSet, lattice::SiteExpansionLatti
     )
 end
 
-Base.getindex(e::SiteExpansion, cluster_id::Int, order::Int) = e.weights[cluster_id, order]
+Base.getindex(e::SiteExpansion, cluster_id::Int, order::Int) = getindex(e.weights, cluster_id, order)
+Base.getindex(e::SiteExpansion, cluster_ids::Vector{Int}, order::Int) = getindex(e.weights, cluster_ids, order)
 Base.setindex!(e::SiteExpansion, l::Rational, cluster_id::Int, order::Int) = setindex!(e.weights, l, cluster_id, order)
+Base.setindex!(e::SiteExpansion, l::Rational, cluster_ids::Vector{Int}, order::Int) = setindex!(e.weights, l, cluster_ids, order)
+Base.setindex!(e::SiteExpansion, ls, cluster_ids::Vector{Int}, order::Int) = setindex!(e.weights, ls, cluster_ids, order)
 order_ids(e::SiteExpansion, order::Int) = e.order_ids[order]
+get_subclusters(e::SiteExpansion, cluster_id::Int) = e.subgraphs[cluster_id]
