@@ -13,6 +13,8 @@ import LINCEGE:
         Lattices.bond_matrix,
         Lattices.get_coordinates,
         Lattices.get_site_colors,
+        Lattices.connections,
+        Lattices.n_site_colors,
         Clusters.AbstractCluster,
         Clusters.AbstractClusterSet,
         Clusters.ghash
@@ -24,6 +26,9 @@ Base.length(e::AbstractExpansion) = _NI("Base.length")
 add_array!(e::AbstractExpansion, order::Int, per_cluster::AbstractVector{Float64}) = _NI("add_array!")
 order_ids(e::AbstractExpansion, order::Int) = _NI("order_ids")
 get_subclusters(e::AbstractExpansion, cluster_id::Int) = _NI("get_subclusters")
+order_offset(e::AbstractExpansion) = _NI("order_offset")
+
+summation!(e::AbstractExpansion, max_order::Int) = _summation!(e, max_order + order_offset(e))
 
 function _summation!(e::AbstractExpansion, max_order::Int)
         stack = Vector{Tuple{Int,Float64}}()
@@ -47,7 +52,6 @@ function _summation!(e::AbstractExpansion, max_order::Int)
 end
 
 include("util.jl")
-include("SiteExpansions.jl")
-include("ClusterExpansions.jl")
+include("Expansion.jl")
 
 end

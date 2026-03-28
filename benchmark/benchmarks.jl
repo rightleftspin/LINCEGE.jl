@@ -9,7 +9,7 @@ import LINCEGE:
         Clusters.IsomorphicClusterSet,
         Clusters.clusters_from_lattice!,
         Clusters.clusters_from_clusters!,
-        Expansions.SiteExpansion,
+        Expansions.Expansion,
         Expansions.summation!
 
 SUITE = BenchmarkGroup()
@@ -34,9 +34,9 @@ SUITE["square"]["clusters_from_clusters"] = @benchmarkable begin
         iso = IsomorphicClusterSet($lattice_sq)
         clusters_from_clusters!(iso, $trans_sq)
 end
-SUITE["square"]["SiteExpansion"] = @benchmarkable SiteExpansion($iso_sq, $lattice_sq, 6)
+SUITE["square"]["Expansion"] = @benchmarkable Expansion($iso_sq, $lattice_sq, 6)
 SUITE["square"]["summation"] = @benchmarkable begin
-        e = SiteExpansion($iso_sq, $lattice_sq, 6)
+        e = Expansion($iso_sq, $lattice_sq, 6)
         summation!(e, 6)
 end
 
@@ -58,6 +58,6 @@ SUITE["kagome"]["clusters_from_lattice"] = @benchmarkable begin
         clusters_from_lattice!(cs, $lattice_kag)
 end
 SUITE["kagome"]["summation"] = @benchmarkable begin
-        e = SiteExpansion($iso_kag, $lattice_kag, 4)
+        e = Expansion($iso_kag, $lattice_kag, 4)
         summation!(e, 4)
 end

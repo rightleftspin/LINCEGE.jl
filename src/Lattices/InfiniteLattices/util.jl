@@ -51,5 +51,5 @@ end
 
 function find_centers(coordinates::AbstractMatrix{Int})
         center_indices = findall(col -> all(x -> x == 0, col[1:end-1]), eachcol(coordinates))
-        LatticeVertices(center_indices)
+        center_indices
 end

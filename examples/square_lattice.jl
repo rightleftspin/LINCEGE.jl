@@ -6,7 +6,7 @@ import LINCEGE:
         Clusters.IsomorphicClusterSet,
         Clusters.clusters_from_lattice!,
         Clusters.clusters_from_clusters!,
-        Expansions.SiteExpansion,
+        Expansions.Expansion,
         Expansions.summation!,
         Expansions.write_to_json
 
@@ -22,7 +22,7 @@ clusters_from_lattice!(trans_clusters, lattice)
 iso_clusters = IsomorphicClusterSet(lattice)
 clusters_from_clusters!(iso_clusters, trans_clusters)
 
-expansion = SiteExpansion(iso_clusters, lattice, m_order)
+expansion = Expansion(iso_clusters, lattice, m_order)
 summation!(expansion, m_order)
 
 path = "./examples/output/square_lattice.json"

@@ -15,7 +15,7 @@ function SiteExpansionLattice(max_order::Int, unit_cell::UnitCell)
         return SiteExpansionLattice(UInt8(max_order), unit_cell, coordinates, adj_matrix, neighbor_list)
 end
 
-centers(lattice::SiteExpansionLattice) = find_centers(lattice.coordinates)
+centers(lattice::SiteExpansionLattice) = LatticeVertices(find_centers(lattice.coordinates))
 max_order(lattice::SiteExpansionLattice) = lattice.max_order
 n_unique_sites(lattice::SiteExpansionLattice) = basis_size(lattice.unit_cell)
 

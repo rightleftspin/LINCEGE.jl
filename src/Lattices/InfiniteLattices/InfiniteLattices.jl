@@ -3,8 +3,8 @@ abstract type AbstractClusterExpansionLattice <: AbstractInfiniteLattice end
 
 n_unique_sites(lattice::AbstractInfiniteLattice) = _NI("n_unique_sites")
 
-n_labels(lattice::AbstractClusterExpansionLattice) = _NI("n_labels")
-connections(lattice::AbstractClusterExpansionLattice) = _NI("n_labels")
+n_site_colors(lattice::AbstractClusterExpansionLattice) = _NI("n_site_colors")
+connections(lattice::AbstractClusterExpansionLattice) = _NI("connections")
 
 include("util.jl")
 include("SiteExpansionLattices.jl")
