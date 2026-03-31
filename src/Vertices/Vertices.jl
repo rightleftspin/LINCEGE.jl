@@ -1,8 +1,3 @@
-module Vertices
-
-import LINCEGE:
-        _NI
-
 abstract type AbstractVertices{V} end
 
 vertices(vs::AbstractVertices) = _NI("vertices")
@@ -41,8 +36,3 @@ Base.iterate(vs::AbstractVertices, state) = iterate(vertices(vs), state)
 Base.show(io::IO, vs::AbstractVertices) = print(io, "Vertices: ", collect(vs))
 
 include("TaggedVertices.jl")
-
-export AbstractVertices,
-        ExpansionVertices,
-        LatticeVertices
-end

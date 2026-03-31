@@ -8,6 +8,11 @@ function add_cluster!(cs::AbstractClusterSet{C,H}, c::AbstractCluster) where {C,
         end
 end
 
+"""
+    clusters_from_clusters!(new_clusters, old_clusters)
+
+# TODO: describe what clusters_from_clusters! does
+"""
 function clusters_from_clusters!(new_clusters::AbstractClusterSet{C,H}, old_clusters::AbstractClusterSet) where {C<:AbstractCluster,H}
         for old_cluster in old_clusters
                 add_cluster!(new_clusters, old_cluster)
@@ -15,6 +20,11 @@ function clusters_from_clusters!(new_clusters::AbstractClusterSet{C,H}, old_clus
         new_clusters
 end
 
+"""
+    clusters_from_lattice!(clusters, lattice; spawn_depth=3)
+
+# TODO: describe what clusters_from_lattice! does
+"""
 function clusters_from_lattice!(clusters::AbstractClusterSet{C,H}, lattice::AbstractInfiniteLattice; spawn_depth::Int=3) where {C<:AbstractCluster,H}
         max_depth = max_order(lattice)
         ctrs = centers(lattice)

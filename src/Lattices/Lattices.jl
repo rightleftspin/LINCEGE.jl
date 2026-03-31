@@ -1,19 +1,3 @@
-module Lattices
-
-using LinearAlgebra
-
-import LINCEGE:
-        _NI,
-        Vertices.AbstractVertices,
-        Vertices.ExpansionVertices,
-        Vertices.LatticeVertices,
-        UnitCells.UnitCell,
-        UnitCells.ExpansionUnitCell,
-        UnitCells.dimension,
-        UnitCells.basis_size,
-        UnitCells.shift_unit_cell,
-        UnitCells.neighbor_site
-
 abstract type AbstractLattice end
 
 centers(lattice::AbstractLattice) = _NI("centers")
@@ -26,5 +10,3 @@ bond_matrix(lattice::AbstractLattice) = _NI("bond_matrix")
 
 include("Connections.jl")
 include("InfiniteLattices/InfiniteLattices.jl")
-
-end

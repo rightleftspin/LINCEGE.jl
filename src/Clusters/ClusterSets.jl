@@ -3,6 +3,11 @@ struct ClusterSet{C<:AbstractCluster,H<:AbstractHasher} <: AbstractClusterSet{C,
         hasher::H
 end
 
+"""
+    TranslationClusterSet(lattice)
+
+# TODO: describe what a TranslationClusterSet represents
+"""
 function TranslationClusterSet(lattice::AbstractInfiniteLattice)
         ClusterSet{Cluster,TranslationHasher}(
                 Set{Cluster}(),
@@ -10,6 +15,11 @@ function TranslationClusterSet(lattice::AbstractInfiniteLattice)
         )
 end
 
+"""
+    IsomorphicClusterSet(lattice)
+
+# TODO: describe what an IsomorphicClusterSet represents
+"""
 function IsomorphicClusterSet(lattice::AbstractLattice)
         ClusterSet{Cluster,IsomorphicHasher}(
                 Set{Cluster}(),

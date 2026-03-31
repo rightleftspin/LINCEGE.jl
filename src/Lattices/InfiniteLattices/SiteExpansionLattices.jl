@@ -1,3 +1,8 @@
+"""
+    SiteExpansionLattice(max_order, unit_cell)
+
+# TODO: describe what a SiteExpansionLattice represents
+"""
 struct SiteExpansionLattice <: AbstractInfiniteLattice
         max_order::UInt8
         unit_cell::UnitCell

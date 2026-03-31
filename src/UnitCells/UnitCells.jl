@@ -1,7 +1,3 @@
-module UnitCells
-import LINCEGE:
-        _NI
-
 abstract type AbstractUnitCell end
 
 basis_size(unit_cell::AbstractUnitCell) = _NI("basis_size")
@@ -13,5 +9,3 @@ image_unit_cell(unit_cell::AbstractUnitCell) = _NI("image_unit_cell")
 
 include("UnitCell.jl")
 include("ExpansionUnitCell.jl")
-
-end

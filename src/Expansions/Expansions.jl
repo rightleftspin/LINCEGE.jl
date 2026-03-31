@@ -1,24 +1,3 @@
-module Expansions
-
-using JSON3
-
-import LINCEGE:
-        _NI,
-        Vertices.ExpansionVertices,
-        Vertices.LatticeVertices,
-        Lattices.AbstractLattice,
-        Lattices.SiteExpansionLattice,
-        Lattices.AbstractClusterExpansionLattice,
-        Lattices.neighbors,
-        Lattices.bond_matrix,
-        Lattices.get_coordinates,
-        Lattices.get_site_colors,
-        Lattices.connections,
-        Lattices.n_site_colors,
-        Clusters.AbstractCluster,
-        Clusters.AbstractClusterSet,
-        Clusters.ghash
-
 abstract type AbstractExpansion end
 
 Base.getindex(e::AbstractExpansion, cluster_id::Int, order::Int) = _NI("Base.getindex")
@@ -28,6 +7,11 @@ order_ids(e::AbstractExpansion, order::Int) = _NI("order_ids")
 get_subclusters(e::AbstractExpansion, cluster_id::Int) = _NI("get_subclusters")
 order_offset(e::AbstractExpansion) = _NI("order_offset")
 
+"""
+    summation!(expansion, max_order)
+
+# TODO: describe what summation! does
+"""
 summation!(e::AbstractExpansion, max_order::Int) = _summation!(e, max_order + order_offset(e))
 
 function _summation!(e::AbstractExpansion, max_order::Int)
@@ -53,5 +37,3 @@ end
 
 include("util.jl")
 include("Expansion.jl")
-
-end

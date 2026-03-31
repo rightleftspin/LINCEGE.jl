@@ -1,3 +1,8 @@
+"""
+    Expansion(clusters, lattice, max_order)
+
+# TODO: describe what an Expansion represents
+"""
 struct Expansion <: AbstractExpansion
         index_dictionary::Dict{UInt,Int}
         subgraphs::Vector{Vector{Int}}
@@ -76,6 +81,11 @@ get_subclusters(e::Expansion, cluster_id::Int) = e.subgraphs[cluster_id]
 add_array!(e::Expansion, order::Int, per_cluster::AbstractVector{Float64}) = @views e.weights[:, order] .+= per_cluster
 order_offset(e::Expansion) = e.order_offset
 
+"""
+    write_to_json(expansion, lattice, clusters, filepath)
+
+# TODO: describe what write_to_json does
+"""
 function write_to_json(e::Expansion, lattice::SiteExpansionLattice, cs::AbstractClusterSet, filepath::String)
         all_coords = get_coordinates(lattice)
         all_colors = get_site_colors(lattice)

@@ -1,3 +1,8 @@
+"""
+    Bond(site1, site2, direction, bond_type)
+
+# TODO: describe what a Bond represents
+"""
 struct Bond
         site1::Int
         site2::Int
@@ -8,6 +13,11 @@ end
 neighbor_site(bond::Bond, coordinate::AbstractVector{Int}) = [coordinate[1:end-1] + bond.direction; bond.site2]
 
 # coordinates are written [x1 x2 x3 ...; y1 y2 y3 ...; z1 z2 z3 ...]
+"""
+    UnitCell(basis, primitive_vectors, bonds, site_colors)
+
+# TODO: describe what a UnitCell represents
+"""
 struct UnitCell
         basis::Matrix{Float64}
         primitive_vectors::Matrix{Float64}
@@ -24,6 +34,8 @@ function UnitCell(basis::AbstractVector{<:AbstractVector{Float64}}, primitive_ve
 
         UnitCell(hcat(basis...), hcat(primitive_vectors...), site_colors, bonds)
 end
+
+function image_unit_cell end
 
 basis_size(unit_cell::UnitCell) = size(unit_cell.basis, 2)
 dimension(unit_cell::UnitCell) = size(unit_cell.primitive_vectors, 2)

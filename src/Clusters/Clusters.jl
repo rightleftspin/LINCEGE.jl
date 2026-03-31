@@ -1,24 +1,3 @@
-module Clusters
-
-using Base.Threads
-using LinearAlgebra
-using NautyGraphs
-
-import LINCEGE:
-        _NI,
-        Vertices.AbstractVertices,
-        Lattices.centers,
-        Lattices.max_order,
-        Lattices.neighbors,
-        Lattices.n_unique_sites,
-        Lattices.AbstractLattice,
-        Lattices.AbstractInfiniteLattice,
-        Hashers.AbstractHasher,
-        Hashers.TranslationHasher,
-        Hashers.SymmetricHasher,
-        Hashers.IsomorphicHasher,
-        Hashers.ghash
-
 abstract type AbstractCluster end
 abstract type AbstractClusterSet{C<:AbstractCluster,H<:AbstractHasher} end
 
@@ -42,5 +21,3 @@ ghash(cs::AbstractClusterSet, vs::AbstractVertices) = _NI("ghash")
 include("util.jl")
 include("Cluster.jl")
 include("ClusterSets.jl")
-
-end
