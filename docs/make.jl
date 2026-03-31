@@ -14,6 +14,10 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Examples" => [
+            "Square Lattice" => "examples/square_lattice.md",
+            "Kagome Lattice" => "examples/kagome_lattice.md",
+        ],
     ],
 )
 
