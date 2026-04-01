@@ -87,7 +87,7 @@ order_offset(e::Expansion) = e.order_offset
 """
     write_to_json(expansion, lattice, clusters, filepath)
 
-Writes an expansion to JSON, currently only works for SiteExpansionLattices
+Writes an expansion to a JSON file at the given filepath
 """
 function write_to_json(e::Expansion, lattice::SiteExpansionLattice, cs::AbstractClusterSet, filepath::String)
         all_coords = get_coordinates(lattice)
@@ -111,6 +111,57 @@ function write_to_json(e::Expansion, lattice::SiteExpansionLattice, cs::Abstract
                         "bonds" => bonds,
                         "weights" => vec(e.weights[cluster_id, :])
                 ))
+        end
+
+        open(filepath, "w") do io
+                JSON3.pretty(io, clusters_data)
+        end
+end
+
+function write_to_json(e::Expansion, lattice::AbstractClusterExpansionLattice, cs::AbstractClusterSet, filepath::String)
+        all_coords = get_coordinates(lattice)
+        all_colors = get_site_colors(lattice)
+        adj = bond_matrix(lattice)
+        single_sites = []
+
+        clusters_data = []
+        for cluster in cs
+                n = length(cluster.vs) + 1
+                lvs = connections(lattice)[cluster.vs]
+                cluster_id = e.index_dictionary[cluster.ghash]
+
+                coords = collect(eachcol(all_coords[:, lvs]))
+                colors = all_colors[lvs]
+                bonds = adj_mat_to_edge_list(adj[lvs, lvs])
+
+                push!(clusters_data, Dict(
+                        "cluster_id" => cluster_id,
+                        "nlce_order" => n,
+                        "n_sites" => length(lvs),
+                        "coordinates" => coords,
+                        "site_colors" => colors,
+                        "bonds" => bonds,
+                        "weights" => vec(e.weights[cluster_id, :])
+                ))
+
+                for lv in lvs
+                        lv = LatticeVertices(lv)
+                        gh = ghash(cs, lv)
+
+                        if !(gh in single_sites)
+                                push!(single_sites, gh)
+                                id = e.index_dictionary[gh]
+                                push!(clusters_data, Dict(
+                                        "cluster_id" => id,
+                                        "nlce_order" => 1,
+                                        "n_sites" => 1,
+                                        "coordinates" => all_coords[:, lv],
+                                        "site_colors" => all_colors[lv],
+                                        "bonds" => [],
+                                        "weights" => vec(e.weights[id, :])
+                                ))
+                        end
+                end
         end
 
         open(filepath, "w") do io
