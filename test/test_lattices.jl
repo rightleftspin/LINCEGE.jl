@@ -35,6 +35,19 @@
 
         end
 
+        @testset verbose = true "WeakClusterExpansionLattice" begin
+
+                @testset "Square Cluster Lattice" begin
+                        lattice = WeakClusterExpansionLattice(4, square_cluster_uc)
+
+                        @test centers(lattice) == ExpansionVertices([41])
+                        @test max_order(lattice) == UInt8(4)
+                        @test n_unique_sites(lattice) == 2
+                        @test neighbors(lattice, centers(lattice)) == ExpansionVertices([32, 40, 42, 50])
+                end
+
+        end
+
         @testset "Bond Type Correctness" begin
                 sq_lat = SiteExpansionLattice(2, square_uc)
                 @test sort(unique(filter(!=(0), bond_matrix(sq_lat)))) == [1]

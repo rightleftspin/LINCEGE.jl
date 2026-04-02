@@ -78,7 +78,10 @@ function Expansion(clusters::AbstractClusterSet, lattice::AbstractClusterExpansi
 end
 
 Base.getindex(e::Expansion, cluster_id::Int, order::Int) = getindex(e.weights, cluster_id, order)
+Base.getindex(e::Expansion, cluster::AbstractCluster) = e.weights[e.index_dictionary[cluster.ghash], :]
 Base.length(e::Expansion) = length(e.subgraphs)
+Base.show(io::IO, e::Expansion) =
+        print(io, "Expansion($(length(e)) clusters, max_order=$(size(e.weights, 2) - e.order_offset))")
 order_ids(e::Expansion, order::Int) = e.order_ids[order]
 get_subclusters(e::Expansion, cluster_id::Int) = e.subgraphs[cluster_id]
 add_array!(e::Expansion, order::Int, per_cluster::AbstractVector{Float64}) = @views e.weights[:, order] .+= per_cluster

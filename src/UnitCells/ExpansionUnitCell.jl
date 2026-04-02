@@ -1,3 +1,8 @@
+"""
+    ExpansionBond(site1, site2, direction, bond_type)
+
+Bond of given type between two sites inside of the expansion basis, indexed [expansion basis, element number] along the given direction, in primitive lattice vector notation
+"""
 struct ExpansionBond
         site1::Vector{Int}
         site2::Vector{Int}
@@ -7,6 +12,11 @@ end
 
 neighbor_site(bond::ExpansionBond, coordinate::AbstractVector{Int}) = [coordinate[1:end-2] + bond.direction; bond.site2[1]; bond.site2[2]]
 
+"""
+    ExpansionUnitCell(basis, primitive_vectors, site_colors, bonds, expansion_bonds)
+
+Unit cell containing the given information, generally to be used for a cluster expansion. The bonds are between sites in the basis, and the expansion bonds are between the unit cells in the expansion. Coordinates are written [x1 x2 x3 ...; y1 y2 y3 ...; z1 z2 z3 ...;].
+"""
 struct ExpansionUnitCell <: AbstractUnitCell
         basis::Vector{Matrix{Float64}}
         primitive_vectors::Matrix{Float64}
@@ -32,3 +42,4 @@ basis_size(unit_cell::ExpansionUnitCell) = size.(unit_cell.basis, 2)
 dimension(unit_cell::ExpansionUnitCell) = size(unit_cell.primitive_vectors, 2)
 shift_unit_cell(unit_cell::ExpansionUnitCell, shift_vector::AbstractVector{Int}) = unit_cell.primitive_vectors * shift_vector[1:end-2] + unit_cell.basis[shift_vector[end-1]][:, shift_vector[end]]
 shift_unit_cell(unit_cell::ExpansionUnitCell, shift_vectors::AbstractMatrix{Int}) = stack(v -> shift_unit_cell(unit_cell, v), eachcol(shift_vectors))
+lattice_coordinates(unit_cell::ExpansionUnitCell, expansion_coord::AbstractVector{Int}) = stack(v -> shift_unit_cell(unit_cell, v), [[expansion_coord..., i] for i in 1:basis_size(unit_cell)[expansion_coord[end]]])

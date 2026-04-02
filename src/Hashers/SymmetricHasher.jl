@@ -1,7 +1,7 @@
-struct SymmetricHasher <: AbstractHasher
+struct SymmetricHasher{C<:Union{<:AbstractConnections,Nothing}} <: AbstractHasher
         trans_hasher::TranslationHasher
         permutations::Vector{Vector{Int64}}
-        connections::Union{<:AbstractConnections,Nothing}
+        connections::C
 end
 
 function SymmetricHasher(lattice::AbstractInfiniteLattice, lattice_symmetries::Vector{Matrix{Float64}}, connections::Union{<:AbstractConnections,Nothing})
@@ -28,4 +28,17 @@ function ghash(h::SymmetricHasher, lvs::LatticeVertices)
         hash(all_hashes)
 end
 
-ghash(h::SymmetricHasher, evs::ExpansionVertices) = ghash(h, h.connections[evs])
+ghash(h::SymmetricHasher{StrongClusterConnections}, evs::ExpansionVertices) = ghash(h, h.connections[evs])
+
+function ghash(h::SymmetricHasher{WeakClusterConnections}, evs::ExpansionVertices)
+        all_hashes = Set()
+        for perm in h.permutations
+                lvs, mask = h.connections[evs]
+                new_lvs = perm[lvs]
+                hm = h.trans_hasher.hashing_matrix[sort(new_lvs), sort(new_lvs)]
+                hm[mask[sortperm(new_lvs), sortperm(new_lvs)]] .= 0
+                push!(all_hashes, hash(sum(hm, dims=2)))
+        end
+
+        hash(all_hashes)
+end

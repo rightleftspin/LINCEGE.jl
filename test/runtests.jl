@@ -88,6 +88,27 @@ pyro_exp_uc_uc = ExpansionUnitCell(
         [[1, 1, 1, 1]]
 )
 
+# Square Lattice Square Expansion 
+square_cluster_basis = [[[-1 / 2, -1 / 2], [-1 / 2, 1 / 2], [1 / 2, -1 / 2], [1 / 2, 1 / 2]]]
+square_cluster_pvecs = [[1.0, 1.0], [1.0, -1.0]]
+square_cluster_lbonds = [
+        ExpansionBond([1, 1], [1, 2], [0, 0], 1),
+        ExpansionBond([1, 1], [1, 3], [0, 0], 1),
+        ExpansionBond([1, 2], [1, 4], [0, 0], 1),
+        ExpansionBond([1, 3], [1, 4], [0, 0], 1),
+]
+square_cluster_ebonds = [
+        Bond(1, 1, [1, 0], 1),
+        Bond(1, 1, [0, 1], 1),
+]
+square_cluster_uc = ExpansionUnitCell(
+        square_cluster_basis,
+        square_cluster_pvecs,
+        square_cluster_lbonds,
+        square_cluster_ebonds,
+        [[1, 1, 1, 1]]
+)
+
 @testset verbose = true "LINCEGE.jl" begin
         include("test_vertices.jl")
         include("test_unitcells.jl")

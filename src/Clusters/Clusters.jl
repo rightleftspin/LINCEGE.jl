@@ -1,4 +1,29 @@
+"""
+    AbstractCluster
+
+Abstract base type for a single cluster — a connected subgraph of the lattice with an
+associated lattice coefficient used in the NLCE summation.
+
+Subtypes must implement:
+- `Base.length(c)` — number of sites (vertices) in the cluster
+- `Base.hash(c, h)` — the cluster's graph hash (`ghash`)
+"""
 abstract type AbstractCluster end
+
+"""
+    AbstractClusterSet{C<:AbstractCluster, H<:AbstractHasher}
+
+Abstract base type for a collection of unique clusters sharing a common hasher.
+Clusters that are equivalent under the hasher's symmetry are merged
+
+Subtypes must implement:
+- `Base.length(cs)` — number of stored clusters
+- `Base.in(c, cs)` — membership test
+- `Base.iterate(cs)` / `Base.iterate(cs, state)` — iteration over clusters
+- `Base.push!(cs, c)` — add a cluster
+- `Base.pop!(cs, c)` — remove and return a cluster
+- `ghash(cs, c)` / `ghash(cs, vs)` — delegate to the hasher
+"""
 abstract type AbstractClusterSet{C<:AbstractCluster,H<:AbstractHasher} end
 
 # Cluster Methods

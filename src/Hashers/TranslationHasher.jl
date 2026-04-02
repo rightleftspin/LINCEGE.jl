@@ -1,6 +1,6 @@
-struct TranslationHasher <: AbstractHasher
+struct TranslationHasher{C<:Union{<:AbstractConnections,Nothing}} <: AbstractHasher
         hashing_matrix::Matrix{Int}
-        connections::Union{<:AbstractConnections,Nothing}
+        connections::C
 end
 
 function TranslationHasher(lattice::AbstractInfiniteLattice, connections::Union{<:AbstractConnections,Nothing})
@@ -14,5 +14,11 @@ TranslationHasher(lattice::AbstractInfiniteLattice) = TranslationHasher(lattice,
 TranslationHasher(lattice::AbstractClusterExpansionLattice) = TranslationHasher(lattice, connections(lattice))
 
 ghash(h::TranslationHasher, lvs::LatticeVertices) = hash(sum(h.hashing_matrix[lvs, lvs], dims=2))
-ghash(h::TranslationHasher, evs::ExpansionVertices) = ghash(h, union(LatticeVertices(), h.connections[evs]))
+ghash(h::TranslationHasher{StrongClusterConnections}, evs::ExpansionVertices) = ghash(h, union(LatticeVertices(), h.connections[evs]))
 
+function ghash(h::TranslationHasher{WeakClusterConnections}, evs::ExpansionVertices)
+        lvs, mask = h.connections[evs]
+        hm = h.hashing_matrix[lvs, lvs]
+        hm[mask] .= 0
+        hash(sum(hm, dims=2))
+end

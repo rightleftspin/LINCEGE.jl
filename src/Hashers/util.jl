@@ -34,4 +34,3 @@ function get_permutations(coords::Matrix{Float64}, syms::Vector{Matrix{Float64}}
 
         permutations
 end
-

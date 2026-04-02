@@ -12,11 +12,10 @@ end
 
 neighbor_site(bond::Bond, coordinate::AbstractVector{Int}) = [coordinate[1:end-1] + bond.direction; bond.site2]
 
-# coordinates are written [x1 x2 x3 ...; y1 y2 y3 ...; z1 z2 z3 ...]
 """
     UnitCell(basis, primitive_vectors, bonds, site_colors)
 
-Unit cell containing the given information, generally to be used for a site expansion
+Unit cell containing the given information, generally to be used for a site expansion. Coordinates are written [x1 x2 x3 ...; y1 y2 y3 ...; z1 z2 z3 ...;].
 """
 struct UnitCell <: AbstractUnitCell
         basis::Matrix{Float64}

@@ -1,3 +1,17 @@
+"""
+    AbstractExpansion
+
+Abstract base type for an NLCE expansion. Stores the subgraph relationships between
+clusters and the weight matrix that `summation!` populates.
+
+Subtypes must implement:
+- `Base.getindex(e, cluster_id, order)` — weight for a cluster at a given order
+- `Base.length(e)` — total number of clusters (including single-site terms)
+- `add_array!(e, order, per_cluster)` — accumulate a per-cluster vector into the weights at `order`
+- `order_ids(e, order)` — indices of all clusters first appearing at `order`
+- `get_subclusters(e, cluster_id)` — indices of all strict subclusters of `cluster_id`
+- `order_offset(e)` — `0` for site expansions, `1` for cluster expansions
+"""
 abstract type AbstractExpansion end
 
 Base.getindex(e::AbstractExpansion, cluster_id::Int, order::Int) = _NI("Base.getindex")
