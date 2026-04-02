@@ -17,7 +17,7 @@ makedocs(;
                 "Examples" => [
                         "Square Lattice" => "examples/square_lattice.md",
                         "Kagome Lattice" => "examples/kagome_lattice.md",
-                        "Pyrochlore Lattice Unit Cell" => "examples/pyrochlore_unit_cell_expansion.m",
+                        "Pyrochlore Lattice Unit Cell" => "examples/pyrochlore_unit_cell_expansion.md",
                         "Square Lattice Cluster" => "examples/square_cluster.md",
                 ],
         ],
