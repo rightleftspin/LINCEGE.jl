@@ -1,4 +1,4 @@
-using LINCEGE
+using Lincege
 using BenchmarkTools
 
 SUITE = BenchmarkGroup()

@@ -1,10 +1,10 @@
 ```@meta
-CurrentModule = LINCEGE
+CurrentModule = Lincege
 ```
 
-# LINCEGE
+# Lincege
 
-Documentation for [LINCEGE](https://github.com/rightleftspin/LINCEGE.jl), a
+Documentation for [Lincege](https://github.com/rightleftspin/Lincege.jl), a
 julia package for computing LINked Cluster Expansions on a GEneral geometry
 (LINCEGE).
 
@@ -20,5 +20,5 @@ See the online documentation for worked examples on the square lattice, Kagome
 lattice, and Pyrochlore unit cell.
 
 ```@autodocs
-Modules = [LINCEGE]
+Modules = [Lincege]
 ```
